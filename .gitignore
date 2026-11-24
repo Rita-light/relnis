@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 coverage/
+*.tsbuildinfo
 
 # Secrets : jamais dans Git (dépôt public)
 .env
