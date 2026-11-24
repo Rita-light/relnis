@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 14 64 72" width="64" height="72">
+  <title>Relnis</title>
+  <path d="M37 18 H71 A5 5 0 0 1 76 23 V47 A5 5 0 0 1 71 52 H37 Z M51.5 25 H62.5 A2.5 2.5 0 0 1 62.5 30 H51.5 A2.5 2.5 0 0 1 51.5 25 Z" fill="#FF874B" fill-rule="evenodd"/>
+  <path d="M22 18 H38 V82 H22 Z" fill="#F3F6FA"/>
+  <path d="M41.33 51 H57.33 L78 82 H62 Z" fill="#F3F6FA"/>
+</svg>

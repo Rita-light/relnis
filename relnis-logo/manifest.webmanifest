@@ -1,0 +1,13 @@
+{
+  "name": "Relnis",
+  "short_name": "Relnis",
+  "lang": "fr-CA",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#15364D",
+  "background_color": "#F3F6FA",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
