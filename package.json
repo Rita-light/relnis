@@ -1,0 +1,11 @@
+{
+  "name": "relnis",
+  "private": true,
+  "license": "UNLICENSED",
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  }
+}
