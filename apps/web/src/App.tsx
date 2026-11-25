@@ -1,121 +1,64 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
+import { CircleCheck, CircleX, Info, TriangleAlert } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
+// Page temporaire pour vérifier le thème Atlantic Pulse.
+// Les textes seront traduits à l'étape 4d (react-i18next).
 function App() {
-  const [count, setCount] = useState(0)
+  const [sombre, setSombre] = useState(false)
+
+  // La classe « dark » va sur <html> : toute la page bascule, y compris les
+  // fenêtres et menus que shadcn affiche en dehors de ce composant.
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', sombre)
+  }, [sombre])
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="bg-sidebar px-6 py-4 text-sidebar-foreground">
+        <h1 className="text-lg font-semibold">Relnis — test du thème</h1>
+      </header>
+
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
+        <section className="flex flex-col gap-4 rounded-xl bg-card p-6 text-card-foreground shadow-sm">
+          <h2 className="font-semibold">Boutons</h2>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="action">Valider la sortie</Button>
+            <Button>Bouton par défaut</Button>
+            <Button variant="outline">Annuler</Button>
+            <Button variant="ghost">Discret</Button>
+            <Button variant="link">Voir l'historique</Button>
+          </div>
+          <p className="text-sm">
+            Un <a href="#" className="text-lien underline">lien dans un texte</a> utilise
+            l'Océan foncé.
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+        </section>
 
-      <div className="ticks"></div>
+        <section className="flex flex-col gap-3 rounded-xl bg-card p-6 text-card-foreground shadow-sm">
+          <h2 className="font-semibold">États (toujours une icône + un texte)</h2>
+          <p className="flex items-center gap-2 rounded-lg bg-succes px-4 py-2 text-succes-foreground">
+            <CircleCheck aria-hidden="true" /> Sortie enregistrée
+          </p>
+          <p className="flex items-center gap-2 rounded-lg bg-alerte px-4 py-2 text-alerte-foreground">
+            <TriangleAlert aria-hidden="true" /> Stock bas
+          </p>
+          <p className="flex items-center gap-2 rounded-lg bg-erreur px-4 py-2 text-erreur-foreground">
+            <CircleX aria-hidden="true" /> Stock insuffisant
+          </p>
+          <p className="flex items-center gap-2 rounded-lg bg-info px-4 py-2 text-info-foreground">
+            <Info aria-hidden="true" /> Information
+          </p>
+          <span className="w-fit rounded-full bg-ia px-3 py-1 text-sm text-ia-foreground">
+            Lue par l'IA
+          </span>
+        </section>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <Button variant="outline" className="w-fit" onClick={() => setSombre(!sombre)}>
+          {sombre ? 'Passer en mode clair' : 'Passer en mode sombre'}
+        </Button>
+      </main>
+    </div>
   )
 }
 
