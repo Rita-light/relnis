@@ -15,7 +15,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="bg-sidebar px-6 py-4 text-sidebar-foreground">
+      <header className="flex items-center gap-3 bg-sidebar px-6 py-4 text-sidebar-foreground">
+        <img src="/relnis-logo-fonce.svg" alt="" className="h-8 w-8" />
         <h1 className="text-lg font-semibold">Relnis — test du thème</h1>
       </header>
 

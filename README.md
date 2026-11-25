@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="relnis-logo/relnis-logo-fonce.svg">
-    <img src="relnis-logo/relnis-logo-clair.svg" alt="Relnis" width="96">
+    <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/relnis-logo-fonce.svg">
+    <img src="apps/web/public/relnis-logo-clair.svg" alt="Relnis" width="96">
   </picture>
 </p>
 
@@ -72,8 +72,8 @@ Un seul dépôt (monorepo) avec les workspaces de npm :
 relnis/
 ├── apps/
 │   ├── api/          ← serveur NestJS
-│   └── web/          ← interface React (à venir)
-├── relnis-logo/      ← logo et icônes (iront dans apps/web/public)
+│   └── web/          ← interface React + Vite (logo et icônes dans web/public)
+├── docs/             ← notes du projet (ex. règles d'utilisation du logo)
 ├── package.json      ← racine du monorepo (workspaces)
 └── .nvmrc            ← version de Node du projet
 ```
