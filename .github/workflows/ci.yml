@@ -38,6 +38,10 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://relnis:relnis_ci@localhost:5432/relnis?schema=public
+      # Exigés au démarrage de l'API ; les tests gardent les courriels en mémoire (aucun envoi).
+      SMTP_URL: smtp://localhost:1025
+      COURRIEL_EXPEDITEUR: Relnis <ne-pas-repondre@relnis.local>
+      URL_WEB: http://localhost:5173
 
     steps:
       - name: Récupérer le code

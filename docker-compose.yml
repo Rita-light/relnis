@@ -31,6 +31,13 @@ services:
       timeout: 3s
       retries: 10
 
+  # Faux serveur de courriel : attrape tout, n'envoie rien. Messages visibles sur http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:1025:1025" # SMTP (utilisé par l'API)
+      - "127.0.0.1:8025:8025" # page web
+
 volumes:
   postgres-data:
   redis-data:

@@ -1,0 +1,5 @@
+{{{ body }}}
+
+--
+Relnis — la gestion de stock simple et traçable.
+Message de service, sans publicité.

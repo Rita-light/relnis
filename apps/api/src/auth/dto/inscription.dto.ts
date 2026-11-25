@@ -8,10 +8,10 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-
-// Retire les espaces au début et à la fin (« Marie » et « Marie  » deviennent identiques).
-const sansEspacesAutour = ({ value }: { value: unknown }) =>
-  typeof value === 'string' ? value.trim() : value;
+import {
+  courrielNormalise,
+  sansEspacesAutour,
+} from '../../commun/transformations.js';
 
 /**
  * Données reçues pour créer une entreprise et son administrateur.
@@ -39,11 +39,8 @@ export class InscriptionDto {
   @MaxLength(100)
   nom: string;
 
-  // En minuscules : Marie@… et marie@… sont la même adresse.
   @ApiProperty({ example: 'marie@plomberie-tremblay.ca', maxLength: 254 })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(courrielNormalise)
   @IsEmail()
   @MaxLength(254)
   courriel: string;

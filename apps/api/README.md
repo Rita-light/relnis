@@ -24,4 +24,5 @@ Installation : voir le [README principal](../../README.md). Commandes à lancer 
 
 - Erreurs au format `{ code, message, details }` : `throw new ErreurApi(statut, 'CODE', 'message')`.
 - Données reçues validées par un DTO ; un champ non prévu est refusé.
+- Courriels : modèles dans `src/courriels/modeles` (layout commun) ; en local, Mailpit les affiche sur <http://localhost:8025>.
 - ESM : imports relatifs en `.js`. Tests avec Vitest (`vi.fn()`).

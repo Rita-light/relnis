@@ -63,7 +63,30 @@ model Utilisateur {
   modifieLe             DateTime  @updatedAt @map("modifie_le") @db.Timestamptz(3)
 
   entreprise Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Restrict)
+  jetons     Jeton[]
 
   @@index([entrepriseId])
   @@map("utilisateurs")
+}
+
+enum TypeJeton {
+  VERIFICATION_COURRIEL
+
+  @@map("type_jeton")
+}
+
+/// Jeton à usage unique envoyé par courriel. Seul son haché (SHA-256) est enregistré.
+model Jeton {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  utilisateurId String    @map("utilisateur_id") @db.Uuid
+  type          TypeJeton
+  jetonHache    String    @unique @map("jeton_hache") @db.Char(64)
+  expireLe      DateTime  @map("expire_le") @db.Timestamptz(3)
+  utiliseLe     DateTime? @map("utilise_le") @db.Timestamptz(3)
+  creeLe        DateTime  @default(now()) @map("cree_le") @db.Timestamptz(3)
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Restrict)
+
+  @@index([utilisateurId])
+  @@map("jetons")
 }
