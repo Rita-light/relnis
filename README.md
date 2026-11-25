@@ -89,7 +89,10 @@ npm install
 npm run start:dev -w @relnis/api
 ```
 
-L'API répond sur <http://localhost:3000>.
+L'API démarre sur le port 3000 :
+
+- <http://localhost:3000/api/v1> : toutes les adresses de l'API commencent par `/api/v1` ;
+- <http://localhost:3000/api/docs> : la documentation Swagger, générée à partir du code, pour lire et essayer chaque adresse. Elle est désactivée en production.
 
 `npm install` se lance toujours **à la racine** : il installe les dépendances de toutes les applications en une fois.
 
