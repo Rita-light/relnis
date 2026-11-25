@@ -57,7 +57,7 @@ flowchart LR
 | API | NestJS 12, TypeScript (mode strict), ES Modules | En place |
 | Tests | Vitest | En place |
 | Vérification du code | oxlint, Prettier | En place |
-| Interface | React, TypeScript, Vite, Tailwind CSS, shadcn/ui, react-i18next | Prévu |
+| Interface | React 19, TypeScript (mode strict), Vite, Tailwind CSS, shadcn/ui (Base UI), react-i18next | En place |
 | Base de données | PostgreSQL, Prisma | Prévu |
 | Tâches en arrière-plan | BullMQ, Redis | Prévu |
 | Fichiers | Stockage compatible S3 (MinIO en local) | Prévu |
@@ -86,7 +86,8 @@ relnis/
 git clone https://github.com/Rita-light/relnis.git
 cd relnis
 npm install
-npm run start:dev -w @relnis/api
+npm run start:dev -w @relnis/api   # l'API
+npm run dev -w @relnis/web         # l'interface, dans un deuxième terminal
 ```
 
 L'API démarre sur le port 3000 :
@@ -105,6 +106,9 @@ L'API démarre sur le port 3000 :
 | `npm run test:e2e -w @relnis/api` | Tests de bout en bout |
 | `npm run lint -w @relnis/api` | Vérification du code |
 | `npm run build -w @relnis/api` | Compilation dans `apps/api/dist` |
+| `npm run dev -w @relnis/web` | Lance l'interface sur <http://localhost:5173> |
+| `npm run lint -w @relnis/web` | Vérification du code de l'interface |
+| `npm run build -w @relnis/web` | Construction de l'interface dans `apps/web/dist` |
 
 `-w` (workspace) exécute la commande dans une application précise, sans changer de dossier.
 

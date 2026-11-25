@@ -1,32 +1,44 @@
-# React + TypeScript + Vite
+# @relnis/web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+L'interface web de Relnis : React 19 et TypeScript (mode strict), construite avec Vite.
 
-Currently, two official plugins are available:
+Pour la présentation du projet et l'installation, voir le [README principal](../../README.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Lancer et vérifier
 
-## React Compiler
+Toutes les commandes se lancent **depuis la racine du dépôt** :
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Commande | Rôle |
+| --- | --- |
+| `npm run dev -w @relnis/web` | Lance l'interface sur <http://localhost:5173>, avec mise à jour instantanée à chaque modification |
+| `npm run lint -w @relnis/web` | Vérification du code avec oxlint |
+| `npm run build -w @relnis/web` | Vérifie les types, puis construit le site dans `dist/` |
+| `npm run preview -w @relnis/web` | Affiche le site construit, tel qu'il sera mis en ligne |
 
-## Expanding the Oxlint configuration
+## Organisation
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+| Dossier ou fichier | Contenu |
+| --- | --- |
+| `src/components/ui/` | Composants shadcn/ui (Base UI + Tailwind), copiés dans le projet et modifiables |
+| `src/locales/` | Traductions : `fr.json` (langue par défaut) et `en.json` |
+| `src/i18n.ts` | Configuration des langues (react-i18next) |
+| `src/index.css` | Thème Atlantic Pulse : couleurs du mode clair et du mode sombre |
+| `public/` | Logo, icônes et manifeste, servis tels quels à la racine du site |
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+## Règles
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+**Textes** : aucun texte écrit en dur dans les composants. Chaque texte a une clé dans `src/locales/fr.json` et `en.json`, et s'affiche avec `t('ecran.cle')`. TypeScript signale une clé qui n'existe pas.
+
+**Couleurs** : toujours par leur rôle, jamais par leur code.
+
+| Classe | Usage |
+| --- | --- |
+| `variant="action"` | Orange : **une seule** action principale par écran (texte Nuit) |
+| `bg-primary` / variante par défaut | Océan : boutons et éléments actifs |
+| `text-lien` | Liens et petit texte de couleur Océan (Océan foncé, lisible sur Brume) |
+| `bg-ia`, `text-ia-foreground` | Violet : fonctions d'IA et analyses |
+| `bg-succes`, `bg-alerte`, `bg-erreur`, `bg-info` | États, toujours avec une icône et un texte (l'alerte est ambre, pas orange) |
+
+**Accessibilité** : tout doit fonctionner au clavier ; chaque champ a une étiquette ; une image a un texte alternatif (`alt=""` si elle est décorative).
+
+**Imports** : `@/` désigne le dossier `src` (ex. `import { Button } from '@/components/ui/button'`).
