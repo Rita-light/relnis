@@ -1,0 +1,20 @@
+# Dépendances (réinstallées avec npm install)
+node_modules/
+
+# Résultats de build et de tests
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Secrets : jamais dans Git (dépôt public)
+.env
+.env.*
+!.env.example
+
+# Journaux
+*.log
+
+# Fichiers du système
+.DS_Store
+Thumbs.db

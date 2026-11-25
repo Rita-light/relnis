@@ -18,11 +18,11 @@ Symbole choisi le 23 novembre 2026 : un R dont la boucle est une caisse avec sa 
 
 La poignée est un vrai trou dans la caisse : le logo marche sur n'importe quel fond.
 
-## Où les mettre
+## Où ils sont
 
-Dans le projet, copier tous les fichiers dans `apps/web/public/`. Vite les sert tels quels à la racine du site.
+Tous les fichiers sont dans `apps/web/public/`. Vite les sert tels quels à la racine du site (ex. `/favicon.svg`).
 
-Puis, dans `apps/web/index.html`, dans la balise `<head>` :
+Ils sont déclarés dans `apps/web/index.html`, dans la balise `<head>` :
 
 ```html
 <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -32,7 +32,7 @@ Puis, dans `apps/web/index.html`, dans la balise `<head>` :
 <meta name="theme-color" content="#15364D">
 ```
 
-Dans l'interface React (menu de gauche, écrans de connexion), utiliser `relnis-logo-fonce.svg` sur le fond Nuit et `relnis-logo-clair.svg` sur un fond clair, avec un texte alternatif : `<img src="/relnis-logo-fonce.svg" alt="Relnis">`.
+Dans l'interface React (menu de gauche, écrans de connexion), utiliser `relnis-logo-fonce.svg` sur le fond Nuit et `relnis-logo-clair.svg` sur un fond clair, avec un texte alternatif : `<img src="/relnis-logo-fonce.svg" alt="Relnis">`. Si le nom « Relnis » est déjà écrit juste à côté, mettre `alt=""` (image décorative), pour qu'un lecteur d'écran ne l'annonce pas deux fois.
 
 ## Règles d'utilisation
 

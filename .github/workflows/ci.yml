@@ -1,0 +1,48 @@
+name: CI
+
+# Quand : à chaque push, sur toutes les branches, et à chaque pull request.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# Si tu pousses deux fois de suite, l'ancienne vérification est annulée.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Le CI peut seulement LIRE le dépôt (principe du moindre privilège).
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    name: Lint, types, tests et build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      - name: Installer Node (version de .nvmrc)
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Installer les dépendances (versions exactes du package-lock.json)
+        run: npm ci
+
+      - name: Vérifier le code (lint)
+        run: npm run lint
+
+      - name: Vérifier les types
+        run: npm run typecheck
+
+      - name: Lancer les tests
+        run: npm run test
+
+      - name: Construire les applications
+        run: npm run build
+
+      - name: Chercher les failles connues dans les dépendances
+        run: npm audit --audit-level=high
