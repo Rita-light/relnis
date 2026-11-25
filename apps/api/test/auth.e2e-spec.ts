@@ -7,6 +7,10 @@ import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
 import { configurerApp } from '../src/configurer-app.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { RedisService } from '../src/redis/redis.service.js';
+
+// Désactive la limite par adresse IP (seulement quand NODE_ENV=test), sauf dans les tests de limites.
+const SANS_LIMITE = { 'x-test-sans-limite': '1' };
 
 // Tests de bout en bout : vraie API + vraie base. Les courriels restent en mémoire (aucun envoi).
 describe('Authentification (e2e)', () => {
@@ -30,12 +34,14 @@ describe('Authentification (e2e)', () => {
   };
 
   const serveur = () => request(app.getHttpServer());
+  const envoyer = (adresse: string, corps: object) =>
+    serveur().post(adresse).set(SANS_LIMITE).send(corps);
   const inscrire = (donnees: object) =>
-    serveur().post('/api/v1/auth/inscription').send(donnees);
+    envoyer('/api/v1/auth/inscription', donnees);
   const verifier = (jeton: string) =>
-    serveur().post('/api/v1/auth/verifier-courriel').send({ jeton });
+    envoyer('/api/v1/auth/verifier-courriel', { jeton });
   const renvoyer = (courriel: string) =>
-    serveur().post('/api/v1/auth/renvoyer-verification').send({ courriel });
+    envoyer('/api/v1/auth/renvoyer-verification', { courriel });
 
   // Lit le jeton dans le dernier courriel reçu par cette adresse.
   const jetonRecu = (courriel: string) =>
@@ -45,7 +51,7 @@ describe('Authentification (e2e)', () => {
       .searchParams.get('jeton') ?? '';
 
   const connecter = (courriel: string, motDePasse: string) =>
-    serveur().post('/api/v1/auth/connexion').send({ courriel, motDePasse });
+    envoyer('/api/v1/auth/connexion', { courriel, motDePasse });
 
   // Crée un compte au courriel vérifié, prêt à se connecter.
   const compteVerifie = async () => {
@@ -69,6 +75,10 @@ describe('Authentification (e2e)', () => {
     configurerApp(app);
     await app.init();
     prisma = app.get(PrismaService);
+
+    // Repart de compteurs vides. Sécurité : seulement sur la base Redis n° 15 des tests.
+    expect(process.env.REDIS_URL).toMatch(/\/15$/);
+    await app.get(RedisService).flushdb();
   });
 
   afterAll(async () => {
@@ -251,6 +261,7 @@ describe('Authentification (e2e)', () => {
       await navigateur.get('/api/v1/auth/moi').expect(401);
       await navigateur
         .post('/api/v1/auth/connexion')
+        .set(SANS_LIMITE)
         .send({ courriel, motDePasse })
         .expect(200);
 
@@ -283,6 +294,54 @@ describe('Authentification (e2e)', () => {
         .set('Cookie', 'relnis_acces=un.jeton.invente')
         .expect(401);
       expect(res.body.code).toBe('NON_AUTHENTIFIE');
+    });
+  });
+
+  describe('Limites', () => {
+    it('bloque le compte après 5 mots de passe ratés, même avec le bon ensuite (429)', async () => {
+      const { courriel, motDePasse } = await compteVerifie();
+
+      for (let essai = 1; essai <= 5; essai++) {
+        await connecter(courriel, 'pas-le-bon-mot-de-passe').expect(401);
+      }
+      const res = await connecter(courriel, motDePasse).expect(429);
+      expect(res.body.code).toBe('COMPTE_BLOQUE_TEMPORAIREMENT');
+    });
+
+    it('oublie les échecs après une connexion réussie', async () => {
+      const { courriel, motDePasse } = await compteVerifie();
+
+      for (let essai = 1; essai <= 4; essai++) {
+        await connecter(courriel, 'pas-le-bon-mot-de-passe').expect(401);
+      }
+      await connecter(courriel, motDePasse).expect(200);
+      // Le compteur est reparti de zéro : un nouvel échec ne bloque pas.
+      await connecter(courriel, 'pas-le-bon-mot-de-passe').expect(401);
+      await connecter(courriel, motDePasse).expect(200);
+    });
+
+    it("n'envoie pas deux liens de vérification en moins d'une minute", async () => {
+      const donnees = nouvelleInscription();
+      await inscrire(donnees).expect(201); // 1er courriel
+
+      await renvoyer(donnees.courriel).expect(202); // 2e courriel
+      await renvoyer(donnees.courriel).expect(202); // ignoré, même réponse
+
+      expect(boiteCourriels.filter({ to: donnees.courriel })).toHaveLength(2);
+    });
+
+    it("limite les demandes d'une même adresse IP (429)", async () => {
+      // Sans l'en-tête de test : la vraie limite s'applique (3 par 15 min sur cette route).
+      const demander = () =>
+        serveur()
+          .post('/api/v1/auth/renvoyer-verification')
+          .send({ courriel: `ip-${randomUUID()}@exemple.ca` });
+
+      for (let essai = 1; essai <= 3; essai++) {
+        await demander().expect(202);
+      }
+      const res = await demander().expect(429);
+      expect(res.body.code).toBe('TROP_DE_DEMANDES');
     });
   });
 });

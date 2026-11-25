@@ -29,13 +29,14 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(404);
   });
 
-  it('/api/v1/sante (GET) confirme que la base répond', () => {
+  it('/api/v1/sante (GET) confirme que la base et Redis répondent', () => {
     return request(app.getHttpServer())
       .get('/api/v1/sante')
       .expect(200)
       .expect((res) => {
         expect(res.body.status).toBe('ok');
         expect(res.body.info.base_de_donnees.status).toBe('up');
+        expect(res.body.info.redis.status).toBe('up');
       });
   });
 

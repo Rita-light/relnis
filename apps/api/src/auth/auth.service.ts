@@ -6,6 +6,7 @@ import { Prisma, Role, TypeJeton } from '../generated/prisma/client.js';
 import { ErreurApi } from '../commun/erreur-api.js';
 import { CourrielsService } from '../courriels/courriels.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { RedisService } from '../redis/redis.service.js';
 import { ConnexionDto } from './dto/connexion.dto.js';
 import { InscriptionDto } from './dto/inscription.dto.js';
 import {
@@ -26,6 +27,13 @@ export const OPTIONS_ARGON2 = {
 
 /** Durée de validité d'un lien de vérification. */
 const DUREE_VERIFICATION_HEURES = 24;
+
+/** Blocage d'un compte après trop de mots de passe ratés (même depuis plusieurs adresses IP). */
+export const MAX_ECHECS_CONNEXION = 5;
+const DUREE_BLOCAGE_MS = 15 * 60_000; // 15 min
+
+/** Délai minimum entre deux liens de vérification envoyés au même courriel. */
+const DELAI_RENVOI_MS = 60_000; // 1 min
 
 /**
  * Haché d'un jeton envoyé par courriel. SHA-256 suffit ici : le jeton est long
@@ -48,6 +56,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly courriels: CourrielsService,
     private readonly jwt: JwtService,
+    private readonly redis: RedisService,
   ) {}
 
   /**
@@ -58,6 +67,16 @@ export class AuthService {
     dto: ConnexionDto,
     appareil: { navigateur?: string; adresseIp?: string },
   ) {
+    // Compté par courriel, qu'il soit inscrit ou non : le blocage ne révèle pas qui utilise Relnis.
+    const cleEchecs = `connexion:echecs:${dto.courriel}`;
+    if (Number(await this.redis.get(cleEchecs)) >= MAX_ECHECS_CONNEXION) {
+      throw new ErreurApi(
+        HttpStatus.TOO_MANY_REQUESTS,
+        'COMPTE_BLOQUE_TEMPORAIREMENT',
+        "Trop d'essais : réessayez dans 15 minutes",
+      );
+    }
+
     const utilisateur = await this.prisma.utilisateur.findUnique({
       where: { courriel: dto.courriel },
     });
@@ -69,6 +88,12 @@ export class AuthService {
     );
 
     if (!utilisateur || !motDePasseValide || !utilisateur.actif) {
+      // +1 échec ; le compteur s'efface tout seul 15 min après le premier échec.
+      await this.redis
+        .multi()
+        .incr(cleEchecs)
+        .pexpire(cleEchecs, DUREE_BLOCAGE_MS, 'NX')
+        .exec();
       throw new ErreurApi(
         HttpStatus.UNAUTHORIZED,
         'IDENTIFIANTS_INVALIDES',
@@ -83,6 +108,9 @@ export class AuthService {
         "Confirmez d'abord votre adresse courriel",
       );
     }
+
+    // Connexion réussie : les échecs précédents sont oubliés.
+    await this.redis.del(cleEchecs);
 
     const jetonRenouvellement = randomBytes(32).toString('base64url');
     const maintenant = Date.now();
@@ -235,6 +263,17 @@ export class AuthService {
    * Ne dit jamais si le courriel est inscrit : on ne révèle pas qui utilise Relnis.
    */
   async renvoyerVerification(courriel: string) {
+    // Au plus un lien par minute pour un même courriel, même depuis plusieurs adresses IP.
+    // SET … NX : ne pose la clé que si elle n'existe pas déjà, en une seule opération.
+    const premier = await this.redis.set(
+      `verification:renvoi:${courriel}`,
+      '1',
+      'PX',
+      DELAI_RENVOI_MS,
+      'NX',
+    );
+    if (!premier) return;
+
     const utilisateur = await this.prisma.utilisateur.findUnique({
       where: { courriel },
     });

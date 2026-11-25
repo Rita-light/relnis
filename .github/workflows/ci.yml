@@ -20,7 +20,7 @@ jobs:
     name: Lint, types, tests et build
     runs-on: ubuntu-latest
 
-    # Base PostgreSQL jetable pour les tests de bout en bout.
+    # PostgreSQL et Redis jetables pour les tests de bout en bout.
     services:
       postgres:
         image: postgres:18-alpine
@@ -34,6 +34,15 @@ jobs:
           --health-cmd "pg_isready -U relnis -d relnis"
           --health-interval 5s
           --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
           --health-retries 10
 
     env:
