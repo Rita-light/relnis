@@ -6,6 +6,8 @@ import { configurerApp } from './configurer-app.js';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   configurerApp(app);
+  // À l'arrêt (Ctrl + C, redéploiement), ferme proprement la connexion à la base.
+  app.enableShutdownHooks();
 
   // Swagger : actif en développement et en préproduction, coupé en production.
   // En production, NODE_ENV vaut 'production'. La préproduction l'active avec SWAGGER_ENABLED=true.

@@ -58,11 +58,12 @@ flowchart LR
 | Tests | Vitest | En place |
 | Vérification du code | oxlint, Prettier | En place |
 | Interface | React 19, TypeScript (mode strict), Vite, Tailwind CSS, shadcn/ui (Base UI), react-i18next | En place |
-| Base de données | PostgreSQL, Prisma | Prévu |
+| Base de données | PostgreSQL 18, Prisma 7 | En place |
 | Tâches en arrière-plan | BullMQ, Redis | Prévu |
 | Fichiers | Stockage compatible S3 (MinIO en local) | Prévu |
-| Développement local | Docker Compose | Prévu |
-| CI/CD | GitHub Actions, Railway (API), Vercel (interface) | Prévu |
+| Développement local | Docker Compose (PostgreSQL, Redis) | En place |
+| CI | GitHub Actions : lint, types, tests (avec une base PostgreSQL), build, audit | En place |
+| CD | Railway (API), Vercel (interface) | Prévu |
 
 ## Structure du dépôt
 
@@ -80,12 +81,14 @@ relnis/
 
 ## Démarrer en local
 
-**Prérequis** : Node.js 24 (voir `.nvmrc`), npm 11 ou plus récent, Git. Docker sera nécessaire à partir de l'étape base de données.
+**Prérequis** : Node.js 24 (voir `.nvmrc`), npm 11 ou plus récent, Git. Docker (Docker Desktop sous Windows et macOS) pour PostgreSQL et Redis.
 
 ```bash
 git clone https://github.com/Rita-light/relnis.git
 cd relnis
 npm install
+cp apps/api/.env.example apps/api/.env   # réglages locaux (base de développement)
+docker compose up -d                     # PostgreSQL et Redis
 npm run start:dev -w @relnis/api   # l'API
 npm run dev -w @relnis/web         # l'interface, dans un deuxième terminal
 ```

@@ -1,0 +1,69 @@
+// Conventions : tables au pluriel en snake_case, colonnes en snake_case (@map),
+// identifiants UUID v7, dates en UTC (timestamptz).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMINISTRATEUR
+  GESTIONNAIRE
+  EMPLOYE
+  COMPTABLE
+
+  @@map("role")
+}
+
+enum Theme {
+  CLAIR
+  SOMBRE
+  SYSTEME
+
+  @@map("theme")
+}
+
+model Entreprise {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  nom           String   @db.VarChar(200)
+  pays          String   @default("CA") @db.Char(2)
+  langue        String   @default("fr") @db.VarChar(5)
+  fuseauHoraire String   @default("America/Toronto") @map("fuseau_horaire") @db.VarChar(64)
+  devise        String   @default("CAD") @db.Char(3)
+  creeLe        DateTime @default(now()) @map("cree_le") @db.Timestamptz(3)
+  modifieLe     DateTime @updatedAt @map("modifie_le") @db.Timestamptz(3)
+
+  utilisateurs Utilisateur[]
+
+  @@map("entreprises")
+}
+
+/// Jamais supprimé : désactivé (actif = false).
+model Utilisateur {
+  id                    String    @id @default(uuid(7)) @db.Uuid
+  entrepriseId          String    @map("entreprise_id") @db.Uuid
+  prenom                String    @db.VarChar(100)
+  nom                   String    @db.VarChar(100)
+  /// Toujours enregistré en minuscules.
+  courriel              String    @unique @db.VarChar(254)
+  courrielVerifie       Boolean   @default(false) @map("courriel_verifie")
+  motDePasseHache       String    @map("mot_de_passe_hache")
+  role                  Role
+  langue                String    @default("fr") @db.VarChar(5)
+  theme                 Theme     @default(SYSTEME)
+  accesTousEmplacements Boolean   @default(true) @map("acces_tous_emplacements")
+  deuxFaActive          Boolean   @default(false) @map("deux_fa_active")
+  actif                 Boolean   @default(true)
+  derniereConnexion     DateTime? @map("derniere_connexion") @db.Timestamptz(3)
+  creeLe                DateTime  @default(now()) @map("cree_le") @db.Timestamptz(3)
+  modifieLe             DateTime  @updatedAt @map("modifie_le") @db.Timestamptz(3)
+
+  entreprise Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Restrict)
+
+  @@index([entrepriseId])
+  @@map("utilisateurs")
+}

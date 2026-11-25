@@ -19,6 +19,26 @@ jobs:
   verifier:
     name: Lint, types, tests et build
     runs-on: ubuntu-latest
+
+    # Base PostgreSQL jetable pour les tests de bout en bout.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: relnis
+          POSTGRES_PASSWORD: relnis_ci
+          POSTGRES_DB: relnis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U relnis -d relnis"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://relnis:relnis_ci@localhost:5432/relnis?schema=public
+
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v7
@@ -31,6 +51,13 @@ jobs:
 
       - name: Installer les dépendances (versions exactes du package-lock.json)
         run: npm ci
+
+      # Le client Prisma n'est pas dans Git : on le génère.
+      - name: Générer le client Prisma
+        run: npm run db:generate -w @relnis/api
+
+      - name: Appliquer les migrations
+        run: npm run db:deploy -w @relnis/api
 
       - name: Vérifier le code (lint)
         run: npm run lint
