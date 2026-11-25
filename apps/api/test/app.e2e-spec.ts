@@ -29,6 +29,16 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(404);
   });
 
+  it('/api/v1/sante (GET) confirme que la base répond', () => {
+    return request(app.getHttpServer())
+      .get('/api/v1/sante')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.status).toBe('ok');
+        expect(res.body.info.base_de_donnees.status).toBe('up');
+      });
+  });
+
   afterEach(async () => {
     await app.close();
   });

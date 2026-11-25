@@ -14,5 +14,13 @@
     "test": "npm run test --workspaces --if-present && npm run test:e2e --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "verifier": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "overrides": {
+    "effect": "^3.22.5"
+  },
+  "allowScripts": {
+    "prisma@7.10.1": true,
+    "@prisma/engines@7.10.1": true,
+    "@scarf/scarf": false
   }
 }
