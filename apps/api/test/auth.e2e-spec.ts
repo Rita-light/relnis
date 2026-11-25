@@ -44,6 +44,21 @@ describe('Authentification (e2e)', () => {
       .link('/verifier-courriel')
       .searchParams.get('jeton') ?? '';
 
+  const connecter = (courriel: string, motDePasse: string) =>
+    serveur().post('/api/v1/auth/connexion').send({ courriel, motDePasse });
+
+  // Crée un compte au courriel vérifié, prêt à se connecter.
+  const compteVerifie = async () => {
+    const donnees = nouvelleInscription();
+    await inscrire(donnees).expect(201);
+    await verifier(jetonRecu(donnees.courriel)).expect(200);
+    return donnees;
+  };
+
+  // Les cookies posés par une réponse, sous forme de tableau de chaînes.
+  const cookies = (res: { headers: Record<string, string | string[] | undefined> }) =>
+    ([] as string[]).concat(res.headers['set-cookie'] ?? []);
+
   // Démarre l'API une fois, avec les mêmes réglages que main.ts, mais la boîte en mémoire.
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [AppModule] })
@@ -62,6 +77,7 @@ describe('Authentification (e2e)', () => {
       where: { courriel: { in: courrielsCrees } },
     });
     const ids = utilisateurs.map((u) => u.id);
+    await prisma.session.deleteMany({ where: { utilisateurId: { in: ids } } });
     await prisma.jeton.deleteMany({ where: { utilisateurId: { in: ids } } });
     await prisma.utilisateur.deleteMany({ where: { id: { in: ids } } });
     await prisma.entreprise.deleteMany({
@@ -206,6 +222,67 @@ describe('Authentification (e2e)', () => {
       const inconnu = `inconnu-${randomUUID()}@exemple.ca`;
       await renvoyer(inconnu).expect(202);
       boiteCourriels.assertNotSent({ to: inconnu });
+    });
+  });
+
+  describe('Connexion', () => {
+    it('ouvre une session et pose deux cookies httpOnly', async () => {
+      const { courriel, motDePasse } = await compteVerifie();
+      const res = await connecter(courriel, motDePasse).expect(200);
+
+      const poses = cookies(res);
+      expect(poses.find((c) => c.startsWith('relnis_acces='))).toMatch(/HttpOnly/);
+      expect(poses.find((c) => c.startsWith('relnis_renouvellement='))).toMatch(/HttpOnly/);
+      // Les jetons ne sont jamais dans le corps de la réponse.
+      expect(JSON.stringify(res.body)).not.toMatch(/jeton/i);
+
+      const utilisateur = await prisma.utilisateur.findUniqueOrThrow({
+        where: { courriel },
+        include: { sessions: true },
+      });
+      expect(utilisateur.sessions).toHaveLength(1);
+      expect(utilisateur.derniereConnexion).not.toBeNull();
+    });
+
+    it('donne accès à /moi avec le cookie, et seulement avec lui', async () => {
+      const { courriel, motDePasse } = await compteVerifie();
+      const navigateur = request.agent(app.getHttpServer()); // garde les cookies, comme un navigateur
+
+      await navigateur.get('/api/v1/auth/moi').expect(401);
+      await navigateur
+        .post('/api/v1/auth/connexion')
+        .send({ courriel, motDePasse })
+        .expect(200);
+
+      const res = await navigateur.get('/api/v1/auth/moi').expect(200);
+      expect(res.body.courriel).toBe(courriel);
+      expect(res.body.entreprise.nom).toBe('Plomberie Test');
+      expect(res.body).not.toHaveProperty('motDePasseHache');
+    });
+
+    it('refuse un mauvais mot de passe et un courriel inconnu avec le même code (401)', async () => {
+      const { courriel } = await compteVerifie();
+
+      const mauvais = await connecter(courriel, 'pas-le-bon-mot-de-passe').expect(401);
+      const inconnu = await connecter(`inconnu-${randomUUID()}@exemple.ca`, 'peu-importe-ici').expect(401);
+      expect(mauvais.body.code).toBe('IDENTIFIANTS_INVALIDES');
+      expect(inconnu.body.code).toBe('IDENTIFIANTS_INVALIDES');
+    });
+
+    it('refuse un courriel pas encore vérifié (403)', async () => {
+      const donnees = nouvelleInscription();
+      await inscrire(donnees).expect(201);
+
+      const res = await connecter(donnees.courriel, donnees.motDePasse).expect(403);
+      expect(res.body.code).toBe('COURRIEL_NON_VERIFIE');
+    });
+
+    it('refuse un jeton d’accès falsifié (401)', async () => {
+      const res = await serveur()
+        .get('/api/v1/auth/moi')
+        .set('Cookie', 'relnis_acces=un.jeton.invente')
+        .expect(401);
+      expect(res.body.code).toBe('NON_AUTHENTIFIE');
     });
   });
 });

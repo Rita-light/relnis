@@ -20,6 +20,7 @@ async function bootstrap() {
       .setTitle('API Relnis')
       .setDescription('API de gestion de stock de Relnis')
       .setVersion('1')
+      .addCookieAuth('relnis_acces') // les routes protégées lisent ce cookie
       .build();
     const documentFactory = () => SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, documentFactory);

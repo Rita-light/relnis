@@ -1,11 +1,18 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { hash } from '@node-rs/argon2';
+import { JwtService } from '@nestjs/jwt';
+import { hash, verify } from '@node-rs/argon2';
 import { Prisma, Role, TypeJeton } from '../generated/prisma/client.js';
 import { ErreurApi } from '../commun/erreur-api.js';
 import { CourrielsService } from '../courriels/courriels.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { ConnexionDto } from './dto/connexion.dto.js';
 import { InscriptionDto } from './dto/inscription.dto.js';
+import {
+  ChargeJetonAcces,
+  DUREE_ABSOLUE_MS,
+  DUREE_INACTIVITE_MS,
+} from './session.js';
 
 /**
  * Réglages Argon2id recommandés par l'OWASP.
@@ -31,10 +38,108 @@ export const hacherJeton = (jeton: string) =>
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
+  // Haché d'un mot de passe au hasard, comparé quand le courriel n'existe pas (voir connecter()).
+  private readonly hacheFactice = hash(
+    randomBytes(16).toString('hex'),
+    OPTIONS_ARGON2,
+  );
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly courriels: CourrielsService,
+    private readonly jwt: JwtService,
   ) {}
+
+  /**
+   * Vérifie les identifiants, ouvre une session et renvoie les deux jetons.
+   * Une seule erreur pour « courriel inconnu » et « mauvais mot de passe » : on ne révèle pas qui est inscrit.
+   */
+  async connecter(
+    dto: ConnexionDto,
+    appareil: { navigateur?: string; adresseIp?: string },
+  ) {
+    const utilisateur = await this.prisma.utilisateur.findUnique({
+      where: { courriel: dto.courriel },
+    });
+
+    // Toujours un calcul Argon2, même sans compte : le temps de réponse ne trahit rien.
+    const motDePasseValide = await verify(
+      utilisateur?.motDePasseHache ?? (await this.hacheFactice),
+      dto.motDePasse,
+    );
+
+    if (!utilisateur || !motDePasseValide || !utilisateur.actif) {
+      throw new ErreurApi(
+        HttpStatus.UNAUTHORIZED,
+        'IDENTIFIANTS_INVALIDES',
+        'Courriel ou mot de passe incorrect',
+      );
+    }
+    // Vérifié seulement avec le bon mot de passe : sinon, ce message révélerait que le compte existe.
+    if (!utilisateur.courrielVerifie) {
+      throw new ErreurApi(
+        HttpStatus.FORBIDDEN,
+        'COURRIEL_NON_VERIFIE',
+        "Confirmez d'abord votre adresse courriel",
+      );
+    }
+
+    const jetonRenouvellement = randomBytes(32).toString('base64url');
+    const maintenant = Date.now();
+
+    const [session] = await this.prisma.$transaction([
+      this.prisma.session.create({
+        data: {
+          utilisateurId: utilisateur.id,
+          jetonRenouvellementHache: hacherJeton(jetonRenouvellement),
+          appareil: appareil.navigateur?.slice(0, 255),
+          adresseIp: appareil.adresseIp,
+          expireLe: new Date(maintenant + DUREE_INACTIVITE_MS),
+          expireAbsoluLe: new Date(maintenant + DUREE_ABSOLUE_MS),
+        },
+      }),
+      this.prisma.utilisateur.update({
+        where: { id: utilisateur.id },
+        data: { derniereConnexion: new Date(maintenant) },
+      }),
+    ]);
+
+    const charge: ChargeJetonAcces = {
+      sub: utilisateur.id,
+      ent: utilisateur.entrepriseId,
+      role: utilisateur.role,
+      sid: session.id,
+    };
+
+    return {
+      jetonAcces: await this.jwt.signAsync(charge),
+      jetonRenouvellement,
+      utilisateur: {
+        id: utilisateur.id,
+        prenom: utilisateur.prenom,
+        nom: utilisateur.nom,
+        role: utilisateur.role,
+        entrepriseId: utilisateur.entrepriseId,
+      },
+    };
+  }
+
+  /** Le profil de la personne connectée, relu en base (toujours à jour). */
+  async moi(utilisateurId: string) {
+    return this.prisma.utilisateur.findUniqueOrThrow({
+      where: { id: utilisateurId },
+      select: {
+        id: true,
+        prenom: true,
+        nom: true,
+        courriel: true,
+        role: true,
+        langue: true,
+        theme: true,
+        entreprise: { select: { id: true, nom: true } },
+      },
+    });
+  }
 
   /** Crée l'entreprise et son premier administrateur, ensemble ou pas du tout. */
   async inscrire(dto: InscriptionDto) {

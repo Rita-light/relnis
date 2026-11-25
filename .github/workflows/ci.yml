@@ -42,6 +42,7 @@ jobs:
       SMTP_URL: smtp://localhost:1025
       COURRIEL_EXPEDITEUR: Relnis <ne-pas-repondre@relnis.local>
       URL_WEB: http://localhost:5173
+      JWT_SECRET: cle-du-ci-sans-valeur-hors-des-tests
 
     steps:
       - name: Récupérer le code

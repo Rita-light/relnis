@@ -4,6 +4,7 @@ import {
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 import { ErreurApi } from './commun/erreur-api.js';
 import { FiltreErreurs } from './commun/filtre-erreurs.js';
 
@@ -18,6 +19,9 @@ export function configurerApp(app: INestApplication): void {
     type: VersioningType.URI,
     defaultVersion: '1',
   });
+
+  // Lit les cookies des requêtes (requete.cookies), dont celui du jeton d'accès.
+  app.use(cookieParser());
 
   // Toute donnée reçue est vérifiée par son DTO avant d'arriver au contrôleur.
   app.useGlobalPipes(

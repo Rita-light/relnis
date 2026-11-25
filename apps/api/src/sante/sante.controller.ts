@@ -5,10 +5,12 @@ import {
   HealthCheckService,
   PrismaHealthIndicator,
 } from '@nestjs/terminus';
+import { Publique } from '../auth/garde-connexion.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 /** GET /api/v1/sante : 200 si l'API et la base répondent, 503 sinon. */
 @ApiTags('Santé')
+@Publique() // interrogée par l'hébergeur et la surveillance, sans connexion
 @Controller('sante')
 export class SanteController {
   constructor(

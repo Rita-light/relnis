@@ -64,6 +64,7 @@ model Utilisateur {
 
   entreprise Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Restrict)
   jetons     Jeton[]
+  sessions   Session[]
 
   @@index([entrepriseId])
   @@map("utilisateurs")
@@ -89,4 +90,24 @@ model Jeton {
 
   @@index([utilisateurId])
   @@map("jetons")
+}
+
+/// Une connexion ouverte sur un appareil. Seul le haché du jeton de renouvellement est enregistré.
+model Session {
+  id                       String   @id @default(uuid(7)) @db.Uuid
+  utilisateurId            String   @map("utilisateur_id") @db.Uuid
+  jetonRenouvellementHache String   @unique @map("jeton_renouvellement_hache") @db.Char(64)
+  appareil                 String?  @db.VarChar(255)
+  adresseIp                String?  @map("adresse_ip") @db.VarChar(45)
+  derniereActiviteLe       DateTime @default(now()) @map("derniere_activite_le") @db.Timestamptz(3)
+  /// Inactivité : repoussée à chaque renouvellement.
+  expireLe                 DateTime @map("expire_le") @db.Timestamptz(3)
+  /// Limite absolue : jamais repoussée.
+  expireAbsoluLe           DateTime @map("expire_absolu_le") @db.Timestamptz(3)
+  creeLe                   DateTime @default(now()) @map("cree_le") @db.Timestamptz(3)
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Restrict)
+
+  @@index([utilisateurId])
+  @@map("sessions")
 }
