@@ -4,8 +4,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { FileTemplateEngine, MailModule, SmtpTransport } from '@nestjs/mail';
 import { minutes, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import type { Request } from 'express';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { DOSSIER_MODELES } from './courriels/dossier-modeles.js';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -51,9 +49,7 @@ import { SanteModule } from './sante/sante.module.js';
     SanteModule, // GET /api/v1/sante
     AuthModule, // inscription, vérification du courriel, connexion
   ],
-  controllers: [AppController],
   providers: [
-    AppService,
     // Limite de débit appliquée à toutes les routes.
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
