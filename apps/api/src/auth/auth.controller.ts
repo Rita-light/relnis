@@ -15,6 +15,7 @@ import {
   ApiCookieAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
   ApiTooManyRequestsResponse,
@@ -28,7 +29,19 @@ import { InscriptionDto } from './dto/inscription.dto.js';
 import { RenvoyerVerificationDto } from './dto/renvoyer-verification.dto.js';
 import { VerifierCourrielDto } from './dto/verifier-courriel.dto.js';
 import { Publique, UtilisateurCourant } from './garde-connexion.js';
-import { COOKIE_ACCES, poserCookiesSession, type UtilisateurConnecte } from './session.js';
+import {
+  COOKIE_ACCES,
+  COOKIE_RENOUVELLEMENT,
+  effacerCookiesSession,
+  poserCookiesSession,
+  type UtilisateurConnecte,
+} from './session.js';
+
+/** La valeur d'un cookie de la requête, si c'est bien du texte. */
+const cookie = (requete: Request, nom: string): string | undefined => {
+  const valeur: unknown = requete.cookies?.[nom];
+  return typeof valeur === 'string' ? valeur : undefined;
+};
 
 /**
  * Routes /api/v1/auth/… : reçoit les requêtes, la logique est dans AuthService.
@@ -94,6 +107,45 @@ export class AuthController {
       renouvellement: jetonRenouvellement,
     });
     return { utilisateur };
+  }
+
+  // Publique : appelée justement quand le jeton d'accès a expiré. Elle lit le cookie de renouvellement.
+  @Publique()
+  @Throttle({ default: { limit: 30, ttl: minutes(1) } })
+  @Post('renouveler')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: "Nouveau jeton d'accès (et nouveau jeton de renouvellement) en cookies" })
+  @ApiUnauthorizedResponse({ description: 'SESSION_INVALIDE : se reconnecter' })
+  async renouveler(
+    @Req() requete: Request,
+    @Res({ passthrough: true }) reponse: Response,
+  ) {
+    try {
+      const { jetonAcces, jetonRenouvellement } = await this.auth.renouveler(
+        cookie(requete, COOKIE_RENOUVELLEMENT),
+      );
+      poserCookiesSession(reponse, {
+        acces: jetonAcces,
+        renouvellement: jetonRenouvellement,
+      });
+    } catch (erreur) {
+      // Session refusée : on efface les cookies, devenus inutiles.
+      effacerCookiesSession(reponse);
+      throw erreur;
+    }
+  }
+
+  // Publique : on doit pouvoir se déconnecter même avec un jeton d'accès expiré.
+  @Publique()
+  @Post('deconnexion')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse({ description: 'Session fermée, cookies effacés' })
+  async deconnecter(
+    @Req() requete: Request,
+    @Res({ passthrough: true }) reponse: Response,
+  ) {
+    await this.auth.deconnecter(cookie(requete, COOKIE_RENOUVELLEMENT));
+    effacerCookiesSession(reponse);
   }
 
   // Route protégée (pas de @Publique) : le garde exige le cookie d'accès.

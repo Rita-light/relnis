@@ -2,7 +2,12 @@ import { createHash, randomBytes } from 'node:crypto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { hash, verify } from '@node-rs/argon2';
-import { Prisma, Role, TypeJeton } from '../generated/prisma/client.js';
+import {
+  MotifFermeture,
+  Prisma,
+  Role,
+  TypeJeton,
+} from '../generated/prisma/client.js';
 import { ErreurApi } from '../commun/erreur-api.js';
 import { CourrielsService } from '../courriels/courriels.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -11,9 +16,18 @@ import { ConnexionDto } from './dto/connexion.dto.js';
 import { InscriptionDto } from './dto/inscription.dto.js';
 import {
   ChargeJetonAcces,
+  DELAI_GRACE_RENOUVELLEMENT_MS,
   DUREE_ABSOLUE_MS,
   DUREE_INACTIVITE_MS,
 } from './session.js';
+
+// Une seule réponse pour tous les refus de renouvellement : on ne dit pas pourquoi.
+const sessionInvalide = () =>
+  new ErreurApi(
+    HttpStatus.UNAUTHORIZED,
+    'SESSION_INVALIDE',
+    'Session expirée : reconnectez-vous',
+  );
 
 /**
  * Réglages Argon2id recommandés par l'OWASP.
@@ -132,15 +146,8 @@ export class AuthService {
       }),
     ]);
 
-    const charge: ChargeJetonAcces = {
-      sub: utilisateur.id,
-      ent: utilisateur.entrepriseId,
-      role: utilisateur.role,
-      sid: session.id,
-    };
-
     return {
-      jetonAcces: await this.jwt.signAsync(charge),
+      jetonAcces: await this.signerAcces(utilisateur, session.id),
       jetonRenouvellement,
       utilisateur: {
         id: utilisateur.id,
@@ -150,6 +157,107 @@ export class AuthService {
         entrepriseId: utilisateur.entrepriseId,
       },
     };
+  }
+
+  /**
+   * Échange le jeton de renouvellement contre un nouveau jeton d'accès, et remplace
+   * le jeton de renouvellement (rotation). C'est ici que tout est revérifié en base :
+   * session fermée ou expirée, compte désactivé.
+   */
+  async renouveler(jeton: string | undefined) {
+    if (!jeton) throw sessionInvalide();
+    const hache = hacherJeton(jeton);
+    const maintenant = Date.now();
+
+    const session = await this.prisma.session.findFirst({
+      where: {
+        OR: [{ jetonRenouvellementHache: hache }, { jetonPrecedentHache: hache }],
+      },
+      include: { utilisateur: true },
+    });
+    if (!session || session.fermeeLe) throw sessionInvalide();
+
+    // Un ancien jeton présenté : deux onglets en même temps (délai de grâce), ou un vol.
+    const ancienJeton = session.jetonRenouvellementHache !== hache;
+    if (ancienJeton) {
+      const depuisRotation = maintenant - (session.renouveleeLe?.getTime() ?? 0);
+      if (depuisRotation > DELAI_GRACE_RENOUVELLEMENT_MS) {
+        // Le voleur et la vraie personne sont coupés tous les deux : la personne se reconnecte.
+        await this.prisma.session.update({
+          where: { id: session.id },
+          data: {
+            fermeeLe: new Date(maintenant),
+            motifFermeture: MotifFermeture.REUTILISATION_DETECTEE,
+          },
+        });
+        this.logger.warn(`Réutilisation d'un jeton de renouvellement (session ${session.id})`);
+        throw sessionInvalide();
+      }
+    }
+
+    if (
+      session.expireLe.getTime() <= maintenant ||
+      session.expireAbsoluLe.getTime() <= maintenant ||
+      !session.utilisateur.actif
+    ) {
+      throw sessionInvalide();
+    }
+
+    // Délai de grâce : nouvel accès, mais pas de nouvelle rotation (l'autre onglet l'a déjà faite).
+    if (ancienJeton) {
+      return { jetonAcces: await this.signerAcces(session.utilisateur, session.id) };
+    }
+
+    const nouveauJeton = randomBytes(32).toString('base64url');
+    // La condition sur le jeton actuel évite deux rotations simultanées de la même session.
+    const { count } = await this.prisma.session.updateMany({
+      where: { id: session.id, jetonRenouvellementHache: hache },
+      data: {
+        jetonRenouvellementHache: hacherJeton(nouveauJeton),
+        jetonPrecedentHache: hache,
+        renouveleeLe: new Date(maintenant),
+        derniereActiviteLe: new Date(maintenant),
+        // 7 jours de plus, sans jamais dépasser la limite absolue de 30 jours.
+        expireLe: new Date(
+          Math.min(maintenant + DUREE_INACTIVITE_MS, session.expireAbsoluLe.getTime()),
+        ),
+      },
+    });
+    if (count === 0) {
+      return { jetonAcces: await this.signerAcces(session.utilisateur, session.id) };
+    }
+
+    return {
+      // Rôle relu en base : un changement de rôle s'applique au plus tard au prochain renouvellement.
+      jetonAcces: await this.signerAcces(session.utilisateur, session.id),
+      jetonRenouvellement: nouveauJeton,
+    };
+  }
+
+  /** Ferme la session liée au jeton de renouvellement, s'il y en a une. */
+  async deconnecter(jeton: string | undefined) {
+    if (!jeton) return;
+    await this.prisma.session.updateMany({
+      where: { jetonRenouvellementHache: hacherJeton(jeton), fermeeLe: null },
+      data: {
+        fermeeLe: new Date(),
+        motifFermeture: MotifFermeture.DECONNEXION,
+      },
+    });
+  }
+
+  /** Signe un jeton d'accès de 15 min avec l'identité, l'entreprise et le rôle. */
+  private signerAcces(
+    utilisateur: { id: string; entrepriseId: string; role: Role },
+    sessionId: string,
+  ) {
+    const charge: ChargeJetonAcces = {
+      sub: utilisateur.id,
+      ent: utilisateur.entrepriseId,
+      role: utilisateur.role,
+      sid: sessionId,
+    };
+    return this.jwt.signAsync(charge);
   }
 
   /** Le profil de la personne connectée, relu en base (toujours à jour). */

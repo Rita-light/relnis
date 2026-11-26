@@ -13,6 +13,12 @@ import { FiltreErreurs } from './commun/filtre-erreurs.js';
  * Les deux appellent cette fonction : les tests vérifient donc la vraie API.
  */
 export function configurerApp(app: INestApplication): void {
+  // En-têtes de sécurité sur toutes les réponses (ceux de Helmet), et plus de X-Powered-By.
+  app.useSecurityHeaders();
+  // CSRF : refuse (403) une requête qui modifie des données si elle vient d'un autre site.
+  // Le navigateur l'indique lui-même (en-têtes Sec-Fetch-Site et Origin).
+  app.enableCsrfProtection();
+
   // Toutes les adresses commencent par /api/v1.
   app.setGlobalPrefix('api');
   app.enableVersioning({

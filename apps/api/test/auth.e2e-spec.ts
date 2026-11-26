@@ -65,6 +65,33 @@ describe('Authentification (e2e)', () => {
   const cookies = (res: { headers: Record<string, string | string[] | undefined> }) =>
     ([] as string[]).concat(res.headers['set-cookie'] ?? []);
 
+  // La valeur d'un cookie posé par une réponse (undefined s'il n'a pas été posé).
+  const valeurCookie = (
+    res: { headers: Record<string, string | string[] | undefined> },
+    nom: string,
+  ) =>
+    cookies(res)
+      .find((c) => c.startsWith(`${nom}=`))
+      ?.split(';')[0]
+      .slice(nom.length + 1);
+
+  // Envoie un jeton de renouvellement, comme le ferait le navigateur avec son cookie.
+  const renouveler = (jeton: string) =>
+    serveur()
+      .post('/api/v1/auth/renouveler')
+      .set(SANS_LIMITE)
+      .set('Cookie', `relnis_renouvellement=${jeton}`);
+
+  // Un compte vérifié et connecté : son courriel et son jeton de renouvellement.
+  const sessionOuverte = async () => {
+    const { courriel, motDePasse } = await compteVerifie();
+    const res = await connecter(courriel, motDePasse).expect(200);
+    return { courriel, jeton: valeurCookie(res, 'relnis_renouvellement') ?? '' };
+  };
+
+  const sessionDe = (courriel: string) =>
+    prisma.session.findFirstOrThrow({ where: { utilisateur: { courriel } } });
+
   // Démarre l'API une fois, avec les mêmes réglages que main.ts, mais la boîte en mémoire.
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [AppModule] })
@@ -294,6 +321,122 @@ describe('Authentification (e2e)', () => {
         .set('Cookie', 'relnis_acces=un.jeton.invente')
         .expect(401);
       expect(res.body.code).toBe('NON_AUTHENTIFIE');
+    });
+  });
+
+  describe('Renouvellement et déconnexion', () => {
+    it("renouvelle : nouveau jeton d'accès et nouveau jeton de renouvellement (rotation)", async () => {
+      const { jeton } = await sessionOuverte();
+
+      const res = await renouveler(jeton).expect(200);
+      const nouveauJeton = valeurCookie(res, 'relnis_renouvellement');
+      const nouvelAcces = valeurCookie(res, 'relnis_acces');
+
+      expect(nouveauJeton).toBeTruthy();
+      expect(nouveauJeton).not.toBe(jeton);
+      // Le nouveau jeton d'accès ouvre bien les routes protégées.
+      await serveur()
+        .get('/api/v1/auth/moi')
+        .set('Cookie', `relnis_acces=${nouvelAcces}`)
+        .expect(200);
+    });
+
+    it("délai de grâce : l'ancien jeton juste après la rotation donne un accès, sans nouvelle rotation", async () => {
+      const { courriel, jeton } = await sessionOuverte();
+      await renouveler(jeton).expect(200); // un premier onglet fait la rotation
+
+      const res = await renouveler(jeton).expect(200); // un second onglet, au même moment
+      expect(valeurCookie(res, 'relnis_acces')).toBeTruthy();
+      expect(valeurCookie(res, 'relnis_renouvellement')).toBeUndefined();
+      expect((await sessionDe(courriel)).fermeeLe).toBeNull();
+    });
+
+    it("ferme la session si un ancien jeton resservait après le délai (vol probable)", async () => {
+      const { courriel, jeton: ancien } = await sessionOuverte();
+      const res = await renouveler(ancien).expect(200);
+      const nouveau = valeurCookie(res, 'relnis_renouvellement') ?? '';
+
+      // On fait comme si la rotation datait d'une minute.
+      await prisma.session.updateMany({
+        where: { utilisateur: { courriel } },
+        data: { renouveleeLe: new Date(Date.now() - 60_000) },
+      });
+
+      const refus = await renouveler(ancien).expect(401);
+      expect(refus.body.code).toBe('SESSION_INVALIDE');
+      const session = await sessionDe(courriel);
+      expect(session.fermeeLe).not.toBeNull();
+      expect(session.motifFermeture).toBe('REUTILISATION_DETECTEE');
+      // Même le jeton le plus récent ne fonctionne plus : la personne doit se reconnecter.
+      await renouveler(nouveau).expect(401);
+    });
+
+    it('refuse une session inactive depuis plus de 7 jours', async () => {
+      const { courriel, jeton } = await sessionOuverte();
+      await prisma.session.updateMany({
+        where: { utilisateur: { courriel } },
+        data: { expireLe: new Date(Date.now() - 1000) },
+      });
+      await renouveler(jeton).expect(401);
+    });
+
+    it('refuse une session ouverte depuis plus de 30 jours, même active', async () => {
+      const { courriel, jeton } = await sessionOuverte();
+      await prisma.session.updateMany({
+        where: { utilisateur: { courriel } },
+        data: { expireAbsoluLe: new Date(Date.now() - 1000) },
+      });
+      await renouveler(jeton).expect(401);
+    });
+
+    it('refuse le renouvellement si le compte a été désactivé', async () => {
+      const { courriel, jeton } = await sessionOuverte();
+      await prisma.utilisateur.update({ where: { courriel }, data: { actif: false } });
+      await renouveler(jeton).expect(401);
+    });
+
+    it('refuse un renouvellement sans cookie, et efface les cookies', async () => {
+      const res = await serveur()
+        .post('/api/v1/auth/renouveler')
+        .set(SANS_LIMITE)
+        .expect(401);
+      expect(res.body.code).toBe('SESSION_INVALIDE');
+      expect(cookies(res).some((c) => c.startsWith('relnis_acces=;'))).toBe(true);
+    });
+
+    it('déconnexion : ferme la session et efface les cookies', async () => {
+      const { courriel, jeton } = await sessionOuverte();
+
+      const res = await serveur()
+        .post('/api/v1/auth/deconnexion')
+        .set('Cookie', `relnis_renouvellement=${jeton}`)
+        .expect(204);
+
+      // Un cookie vide qui expire en 1970 : le navigateur le supprime.
+      expect(cookies(res).find((c) => c.startsWith('relnis_acces='))).toMatch(/1970/);
+      expect(cookies(res).find((c) => c.startsWith('relnis_renouvellement='))).toMatch(/1970/);
+      const session = await sessionDe(courriel);
+      expect(session.motifFermeture).toBe('DECONNEXION');
+      await renouveler(jeton).expect(401);
+    });
+  });
+
+  describe('Protections', () => {
+    it("refuse une requête qui modifie des données si elle vient d'un autre site (CSRF, 403)", async () => {
+      const res = await serveur()
+        .post('/api/v1/auth/connexion')
+        .set(SANS_LIMITE)
+        .set('Origin', 'https://site-pirate.example')
+        .set('Sec-Fetch-Site', 'cross-site')
+        .send({ courriel: 'marie@exemple.ca', motDePasse: 'peu-importe-ici' })
+        .expect(403);
+      expect(res.body.code).toBe('ACCES_REFUSE');
+    });
+
+    it('ajoute les en-têtes de sécurité et cache la technologie du serveur', async () => {
+      const res = await serveur().get('/api/v1/auth/moi');
+      expect(res.headers['x-powered-by']).toBeUndefined();
+      expect(res.headers['x-content-type-options']).toBe('nosniff');
     });
   });
 

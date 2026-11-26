@@ -6,6 +6,12 @@ export const DUREE_ACCES_SECONDES = 15 * 60; // jeton d'accès : 15 min
 export const DUREE_INACTIVITE_MS = 7 * 24 * 3_600_000; // session : 7 jours sans activité
 export const DUREE_ABSOLUE_MS = 30 * 24 * 3_600_000; // session : 30 jours au maximum
 
+/**
+ * Deux onglets qui renouvellent en même temps envoient le même jeton : le second
+ * arrive après la rotation. Pendant ce court délai, ce n'est pas un vol.
+ */
+export const DELAI_GRACE_RENOUVELLEMENT_MS = 10_000;
+
 export const COOKIE_ACCES = 'relnis_acces';
 export const COOKIE_RENOUVELLEMENT = 'relnis_renouvellement';
 
@@ -33,29 +39,40 @@ declare module 'express-serve-static-core' {
 }
 
 /**
- * Pose les deux cookies de session.
+ * Réglages des cookies de session.
  * httpOnly : illisibles par le JavaScript de la page (protège du vol par un script piégé).
  * SameSite strict : jamais envoyés depuis un autre site (protège du CSRF).
  * Secure en production : envoyés seulement en HTTPS.
  */
+const reglages = (path: string) => ({
+  httpOnly: true,
+  sameSite: 'strict' as const,
+  secure: process.env.NODE_ENV === 'production',
+  path,
+});
+const REGLAGES_ACCES = reglages('/api');
+// Envoyé seulement aux routes d'authentification, où il sert à renouveler l'accès.
+const REGLAGES_RENOUVELLEMENT = reglages('/api/v1/auth');
+
+/** Pose le cookie d'accès, et celui de renouvellement s'il a changé. */
 export function poserCookiesSession(
   reponse: Response,
-  jetons: { acces: string; renouvellement: string },
+  jetons: { acces: string; renouvellement?: string },
 ) {
-  const commun = {
-    httpOnly: true,
-    sameSite: 'strict' as const,
-    secure: process.env.NODE_ENV === 'production',
-  };
   reponse.cookie(COOKIE_ACCES, jetons.acces, {
-    ...commun,
-    path: '/api',
+    ...REGLAGES_ACCES,
     maxAge: DUREE_ACCES_SECONDES * 1000,
   });
-  // Envoyé seulement aux routes d'authentification, où il sert à renouveler l'accès.
-  reponse.cookie(COOKIE_RENOUVELLEMENT, jetons.renouvellement, {
-    ...commun,
-    path: '/api/v1/auth',
-    maxAge: DUREE_INACTIVITE_MS,
-  });
+  if (jetons.renouvellement) {
+    reponse.cookie(COOKIE_RENOUVELLEMENT, jetons.renouvellement, {
+      ...REGLAGES_RENOUVELLEMENT,
+      maxAge: DUREE_INACTIVITE_MS,
+    });
+  }
+}
+
+/** Efface les deux cookies (mêmes réglages, sinon le navigateur les garde). */
+export function effacerCookiesSession(reponse: Response) {
+  reponse.clearCookie(COOKIE_ACCES, REGLAGES_ACCES);
+  reponse.clearCookie(COOKIE_RENOUVELLEMENT, REGLAGES_RENOUVELLEMENT);
 }
