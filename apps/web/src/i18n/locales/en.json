@@ -12,7 +12,7 @@
     "prenom": "First name",
     "nom": "Last name",
     "afficherMotDePasse": "Show password",
-    "aideMotDePasse": "At least {{min}} characters. A short sentence that is easy to remember works well."
+    "aideMotDePasse": "At least {{min}} characters, hard to guess. A short sentence that is easy to remember works well."
   },
   "validation": {
     "requis": "This field is required.",
@@ -22,12 +22,57 @@
     "invalide": "This value is not valid.",
     "accepter": "You must accept to create your account."
   },
+  "solidite": {
+    "libelle": "Strength: {{niveau}}",
+    "tresFaible": "very weak",
+    "faible": "weak",
+    "moyen": "fair",
+    "solide": "good",
+    "tresSolide": "excellent",
+    "tropCourt": "Too short: at least {{min}} characters.",
+    "conseil": "Add one or two unexpected words.",
+    "avertissements": {
+      "straightRow": "Straight rows of keys are easy to guess.",
+      "keyPattern": "Short keyboard patterns are easy to guess.",
+      "simpleRepeat": "Repeated characters like “aaa” are easy to guess.",
+      "extendedRepeat": "Repeated patterns like “abcabcabc” are easy to guess.",
+      "sequences": "Sequences like “abc” or “1234” are easy to guess.",
+      "recentYears": "Recent years are easy to guess.",
+      "dates": "Dates are easy to guess.",
+      "topTen": "This is one of the most used passwords in the world.",
+      "topHundred": "This password is used very often.",
+      "common": "This is a commonly used password.",
+      "similarToCommon": "This looks like a commonly used password.",
+      "wordByItself": "A single word is easy to guess.",
+      "namesByThemselves": "A single name or surname is easy to guess.",
+      "commonNames": "Common names and surnames are easy to guess.",
+      "userInputs": "Avoid your name, your email, your company or the site name.",
+      "pwned": "This password has already leaked in a data breach."
+    },
+    "suggestions": {
+      "l33t": "Avoid predictable substitutions like “@” for “a”.",
+      "reverseWords": "Avoid common words spelled backwards.",
+      "allUppercase": "Capitalize some letters, not all of them.",
+      "capitalization": "A capital letter somewhere other than the start helps a little.",
+      "dates": "Avoid dates and years associated with you.",
+      "recentYears": "Avoid recent years.",
+      "associatedYears": "Avoid years associated with you (birth, etc.).",
+      "sequences": "Avoid character sequences.",
+      "repeated": "Avoid repeated words and characters.",
+      "longerKeyboardPattern": "Use longer keyboard patterns and change direction.",
+      "anotherWord": "Add one or two unexpected words.",
+      "useWords": "Use several words, but not a well-known phrase.",
+      "noNeed": "No need for symbols or numbers: a few unexpected words are enough.",
+      "pwned": "If you use it elsewhere, change it."
+    }
+  },
   "erreurs": {
     "IDENTIFIANTS_INVALIDES": "Incorrect email or password.",
     "COURRIEL_NON_VERIFIE": "Please confirm your email first: open the link we sent you.",
     "COMPTE_BLOQUE_TEMPORAIREMENT": "Too many attempts. Try again in 15 minutes.",
     "TROP_DE_DEMANDES": "Too many requests. Wait a moment, then try again.",
     "COURRIEL_DEJA_UTILISE": "This email is already used by an account.",
+    "MOT_DE_PASSE_TROP_FAIBLE": "This password is too easy to guess. Try a short sentence with unexpected words.",
     "JETON_INVALIDE": "This link is not valid or has already been used.",
     "JETON_EXPIRE": "This link has expired. Request a new one.",
     "SESSION_INVALIDE": "Your session has ended. Please sign in again.",

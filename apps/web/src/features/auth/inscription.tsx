@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LoaderCircle } from 'lucide-react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { ErreurChamp, ErreurFormulaire } from '@/shared/components/messages-formulaire'
-import { InputMotDePasse } from './input-mot-de-passe'
 import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { appelerApi } from '@/shared/lib/api'
 import { aLeCode } from '@/shared/lib/erreurs'
+import { InputMotDePasse } from './input-mot-de-passe'
+import { JaugeSolidite } from './jauge-solidite'
+import { prechargerSolidite, regleSolidite } from './solidite-mot-de-passe'
 import { MOT_DE_PASSE_MAX, MOT_DE_PASSE_MIN, reglesCourriel, reglesTexte } from './validation'
 
 interface Valeurs {
@@ -25,17 +27,29 @@ interface Valeurs {
 // Les pages légales s'ouvrent dans un nouvel onglet : le formulaire rempli reste intact.
 const lienLegal = 'text-lien underline underline-offset-4'
 
+// Infos que la personne pourrait réutiliser dans son mot de passe.
+const CHAMPS_PERSONNELS = ['courriel', 'prenom', 'nom', 'nomEntreprise'] as const
+const remplis = (valeurs: (string | undefined)[]) => valeurs.filter((v): v is string => !!v)
+
 export function Inscription() {
   const { t } = useTranslation()
   const naviguer = useNavigate()
   const [erreurApi, setErreurApi] = useState<unknown>(null)
+  // Mot de passe que l'API a jugé trop faible : filet de sécurité, c'est elle qui a le dernier mot
+  const [refuseParApi, setRefuseParApi] = useState<string | null>(null)
   const {
     register,
     control,
     handleSubmit,
     setError,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<Valeurs>({ defaultValues: { accepteConditions: false } })
+  // Suivis pendant la frappe, pour la jauge de solidité
+  const motDePasse = useWatch({ control, name: 'motDePasse' })
+  const infosPersonnelles = useWatch({ control, name: [...CHAMPS_PERSONNELS] })
+  // Dictionnaires téléchargés dès l'ouverture : prêts quand la personne arrive au mot de passe
+  useEffect(() => prechargerSolidite(), [])
 
   const soumettre = handleSubmit(async (valeurs) => {
     setErreurApi(null)
@@ -46,6 +60,9 @@ export function Inscription() {
       // Courriel déjà pris : l'erreur va sous le champ concerné, qui reçoit le focus.
       if (aLeCode(erreur, 'COURRIEL_DEJA_UTILISE')) {
         setError('courriel', { type: 'COURRIEL_DEJA_UTILISE' }, { shouldFocus: true })
+      } else if (aLeCode(erreur, 'MOT_DE_PASSE_TROP_FAIBLE')) {
+        setRefuseParApi(valeurs.motDePasse)
+        setError('motDePasse', { type: 'MOT_DE_PASSE_TROP_FAIBLE' }, { shouldFocus: true })
       } else {
         setErreurApi(erreur)
       }
@@ -121,7 +138,16 @@ export function Inscription() {
                 required: true,
                 minLength: MOT_DE_PASSE_MIN,
                 maxLength: MOT_DE_PASSE_MAX,
+                validate: regleSolidite(
+                  () => remplis(getValues([...CHAMPS_PERSONNELS])),
+                  () => refuseParApi,
+                ),
               })}
+            />
+            <JaugeSolidite
+              motDePasse={motDePasse ?? ''}
+              indices={remplis(infosPersonnelles)}
+              refuseParApi={!!motDePasse && motDePasse === refuseParApi}
             />
             <FieldDescription id="aide-mot-de-passe">
               {t('champs.aideMotDePasse', { min: MOT_DE_PASSE_MIN })}

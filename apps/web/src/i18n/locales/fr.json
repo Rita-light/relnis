@@ -12,7 +12,7 @@
     "prenom": "Prénom",
     "nom": "Nom",
     "afficherMotDePasse": "Afficher le mot de passe",
-    "aideMotDePasse": "Au moins {{min}} caractères. Une courte phrase facile à retenir fonctionne bien."
+    "aideMotDePasse": "Au moins {{min}} caractères, difficile à deviner. Une courte phrase facile à retenir fonctionne bien."
   },
   "validation": {
     "requis": "Ce champ est obligatoire.",
@@ -22,12 +22,57 @@
     "invalide": "Cette valeur n'est pas valide.",
     "accepter": "Vous devez accepter pour créer votre compte."
   },
+  "solidite": {
+    "libelle": "Solidité : {{niveau}}",
+    "tresFaible": "très faible",
+    "faible": "faible",
+    "moyen": "moyenne",
+    "solide": "bonne",
+    "tresSolide": "excellente",
+    "tropCourt": "Trop court : au moins {{min}} caractères.",
+    "conseil": "Ajoutez un ou deux mots inattendus.",
+    "avertissements": {
+      "straightRow": "Les rangées de touches du clavier sont faciles à deviner.",
+      "keyPattern": "Les motifs de clavier courts sont faciles à deviner.",
+      "simpleRepeat": "Les caractères répétés comme « aaa » sont faciles à deviner.",
+      "extendedRepeat": "Les motifs répétés comme « abcabcabc » sont faciles à deviner.",
+      "sequences": "Les suites comme « abc » ou « 1234 » sont faciles à deviner.",
+      "recentYears": "Les années récentes sont faciles à deviner.",
+      "dates": "Les dates sont faciles à deviner.",
+      "topTen": "Ce mot de passe fait partie des plus utilisés au monde.",
+      "topHundred": "Ce mot de passe est très souvent utilisé.",
+      "common": "Ce mot de passe est couramment utilisé.",
+      "similarToCommon": "Ce mot de passe ressemble à un mot de passe courant.",
+      "wordByItself": "Un mot seul est facile à deviner.",
+      "namesByThemselves": "Un nom ou un prénom seul est facile à deviner.",
+      "commonNames": "Les noms et prénoms courants sont faciles à deviner.",
+      "userInputs": "Évitez votre nom, votre courriel, votre entreprise ou le nom du site.",
+      "pwned": "Ce mot de passe a déjà fuité lors d'un piratage."
+    },
+    "suggestions": {
+      "l33t": "Évitez les remplacements prévisibles comme « @ » pour « a ».",
+      "reverseWords": "Évitez les mots courants écrits à l'envers.",
+      "allUppercase": "Mettez quelques lettres en majuscule, pas toutes.",
+      "capitalization": "Une majuscule ailleurs qu'au début aide un peu.",
+      "dates": "Évitez les dates et les années liées à vous.",
+      "recentYears": "Évitez les années récentes.",
+      "associatedYears": "Évitez les années liées à vous (naissance, etc.).",
+      "sequences": "Évitez les suites de caractères.",
+      "repeated": "Évitez les mots et les caractères répétés.",
+      "longerKeyboardPattern": "Utilisez des motifs de clavier plus longs, en changeant de direction.",
+      "anotherWord": "Ajoutez un ou deux mots inattendus.",
+      "useWords": "Utilisez plusieurs mots, mais pas une expression connue.",
+      "noNeed": "Pas besoin de symboles ni de chiffres : quelques mots inattendus suffisent.",
+      "pwned": "Si vous l'utilisez ailleurs, changez-le."
+    }
+  },
   "erreurs": {
     "IDENTIFIANTS_INVALIDES": "Courriel ou mot de passe incorrect.",
     "COURRIEL_NON_VERIFIE": "Confirmez d'abord votre courriel : ouvrez le lien que nous vous avons envoyé.",
     "COMPTE_BLOQUE_TEMPORAIREMENT": "Trop d'essais. Réessayez dans 15 minutes.",
     "TROP_DE_DEMANDES": "Trop de demandes. Patientez un moment, puis réessayez.",
     "COURRIEL_DEJA_UTILISE": "Ce courriel est déjà utilisé par un compte.",
+    "MOT_DE_PASSE_TROP_FAIBLE": "Ce mot de passe est trop facile à deviner. Essayez une courte phrase avec des mots inattendus.",
     "JETON_INVALIDE": "Ce lien n'est pas valide ou a déjà servi.",
     "JETON_EXPIRE": "Ce lien a expiré. Demandez-en un nouveau.",
     "SESSION_INVALIDE": "Votre session a pris fin. Reconnectez-vous.",

@@ -209,6 +209,14 @@ describe('Authentification (e2e)', () => {
       expect(res.body.details.champs).toHaveProperty('accepteConditions');
     });
 
+    it('refuse un mot de passe facile à deviner, sans rien créer (400)', async () => {
+      const donnees = { ...nouvelleInscription(), motDePasse: '1234567891011' };
+      const res = await inscrire(donnees).expect(400);
+
+      expect(res.body.code).toBe('MOT_DE_PASSE_TROP_FAIBLE');
+      expect(await prisma.utilisateur.count({ where: { courriel: donnees.courriel } })).toBe(0);
+    });
+
     it('refuse un champ non prévu, ex. se donner un rôle (400)', async () => {
       const res = await inscrire({
         ...nouvelleInscription(),
@@ -568,6 +576,16 @@ describe('Authentification (e2e)', () => {
 
       const res = await reinitialiser(await jetonMotDePasse(courriel), 'court').expect(400);
       expect(res.body.details.champs).toHaveProperty('motDePasse');
+    });
+
+    it('refuse un mot de passe tiré du nom de la personne, et le lien reste utilisable (400)', async () => {
+      const { courriel } = await compteVerifie(); // Marie Tremblay
+      await demander(courriel).expect(202);
+      const jeton = await jetonMotDePasse(courriel);
+
+      const res = await reinitialiser(jeton, 'Tremblay2026!').expect(400);
+      expect(res.body.code).toBe('MOT_DE_PASSE_TROP_FAIBLE');
+      await reinitialiser(jeton, 'un-tout-nouveau-mot-de-passe').expect(200);
     });
 
     it('répond pareil pour un courriel inconnu, sans rien envoyer (202)', async () => {

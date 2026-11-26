@@ -60,7 +60,7 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: minutes(15) } }) // chaque inscription envoie un courriel
   @Post('inscription')
   @ApiCreatedResponse({ description: 'Entreprise et compte administrateur créés, courriel de vérification envoyé' })
-  @ApiBadRequestResponse({ description: 'DONNEES_INVALIDES' })
+  @ApiBadRequestResponse({ description: 'DONNEES_INVALIDES ou MOT_DE_PASSE_TROP_FAIBLE' })
   @ApiConflictResponse({ description: 'COURRIEL_DEJA_UTILISE' })
   inscrire(@Body() dto: InscriptionDto) {
     return this.auth.inscrire(dto);
@@ -165,7 +165,7 @@ export class AuthController {
   @Post('nouveau-mot-de-passe')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: 'Mot de passe changé, toutes les sessions fermées : se reconnecter' })
-  @ApiBadRequestResponse({ description: 'JETON_INVALIDE, JETON_EXPIRE ou DONNEES_INVALIDES' })
+  @ApiBadRequestResponse({ description: 'JETON_INVALIDE, JETON_EXPIRE, DONNEES_INVALIDES ou MOT_DE_PASSE_TROP_FAIBLE' })
   async reinitialiserMotDePasse(
     @Body() dto: NouveauMotDePasseDto,
     @Res({ passthrough: true }) reponse: Response,

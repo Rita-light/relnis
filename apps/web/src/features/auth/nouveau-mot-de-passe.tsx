@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CircleAlert, CircleCheck, LoaderCircle } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 import { useSession } from '@/app/session/contexte-session'
@@ -10,7 +10,12 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/fie
 import { appelerApi, ErreurApi } from '@/shared/lib/api'
 import { aLeCode, cleErreur } from '@/shared/lib/erreurs'
 import { InputMotDePasse } from './input-mot-de-passe'
+import { JaugeSolidite } from './jauge-solidite'
+import { prechargerSolidite, regleSolidite } from './solidite-mot-de-passe'
 import { MOT_DE_PASSE_MAX, MOT_DE_PASSE_MIN } from './validation'
+
+// Ici on ne connaît pas encore la personne : l'API vérifiera son nom, son courriel, etc.
+const sansIndices = () => []
 
 /** Page ouverte depuis le lien du courriel : /nouveau-mot-de-passe?jeton=… */
 export function NouveauMotDePasse() {
@@ -19,11 +24,20 @@ export function NouveauMotDePasse() {
   const { etat, actualiser } = useSession()
   const [reussi, setReussi] = useState(false)
   const [erreurApi, setErreurApi] = useState<unknown>(() => (jeton ? null : new ErreurApi(400, 'JETON_INVALIDE')))
+  // Mot de passe que l'API a jugé trop faible (elle connaît le nom de la personne, pas la jauge)
+  const [refuseParApi, setRefuseParApi] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
+    setError,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<{ motDePasse: string }>()
+  const motDePasse = useWatch({ control, name: 'motDePasse' }) // suivi pour la jauge
+  // Dictionnaires téléchargés dès l'ouverture ; sans jeton, la page affiche seulement « lien non valide »
+  useEffect(() => {
+    if (jeton) prechargerSolidite()
+  }, [jeton])
 
   const enregistrer = handleSubmit(async ({ motDePasse }) => {
     setErreurApi(null)
@@ -37,7 +51,13 @@ export function NouveauMotDePasse() {
       // L'API a fermé toutes les sessions : si ce navigateur en avait une, l'interface doit le savoir.
       if (etat.statut === 'connecte') actualiser()
     } catch (erreur) {
-      setErreurApi(erreur)
+      // Trop faible (ex. contient son nom) : l'erreur va sous le champ, le lien reste utilisable.
+      if (aLeCode(erreur, 'MOT_DE_PASSE_TROP_FAIBLE')) {
+        setRefuseParApi(motDePasse)
+        setError('motDePasse', { type: 'MOT_DE_PASSE_TROP_FAIBLE' }, { shouldFocus: true })
+      } else {
+        setErreurApi(erreur)
+      }
     }
   })
 
@@ -98,7 +118,13 @@ export function NouveauMotDePasse() {
                 required: true,
                 minLength: MOT_DE_PASSE_MIN,
                 maxLength: MOT_DE_PASSE_MAX,
+                validate: regleSolidite(sansIndices, () => refuseParApi),
               })}
+            />
+            <JaugeSolidite
+              motDePasse={motDePasse ?? ''}
+              indices={[]}
+              refuseParApi={!!motDePasse && motDePasse === refuseParApi}
             />
             <FieldDescription id="aide-mot-de-passe">
               {t('champs.aideMotDePasse', { min: MOT_DE_PASSE_MIN })}

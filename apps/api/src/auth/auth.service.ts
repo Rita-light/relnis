@@ -18,6 +18,10 @@ import { InscriptionDto } from './dto/inscription.dto.js';
 import { hacherJeton } from './hacher-jeton.js';
 import { JetonsService } from './jetons.service.js';
 import {
+  exigerMotDePasseSolide,
+  indicesPersonnels,
+} from './solidite-mot-de-passe.js';
+import {
   ChargeJetonAcces,
   cleSessionRevoquee,
   DELAI_GRACE_RENOUVELLEMENT_MS,
@@ -326,6 +330,10 @@ export class AuthService {
 
   /** Crée l'entreprise et son administrateur, ensemble ou pas du tout. */
   async inscrire(dto: InscriptionDto) {
+    exigerMotDePasseSolide(
+      dto.motDePasse,
+      indicesPersonnels(dto.courriel, dto.prenom, dto.nom, dto.nomEntreprise),
+    );
     const motDePasseHache = await hash(dto.motDePasse, OPTIONS_ARGON2);
 
     let utilisateur;
@@ -424,7 +432,17 @@ export class AuthService {
   /** Change le mot de passe avec le jeton du lien, puis ferme toutes les sessions. */
   async reinitialiserMotDePasse(jeton: string, motDePasse: string) {
     // Jeton vérifié avant Argon2 : un jeton inventé ne coûte rien au serveur.
-    await this.jetons.verifier(jeton, TypeJeton.MOT_DE_PASSE);
+    const { utilisateurId } = await this.jetons.verifier(jeton, TypeJeton.MOT_DE_PASSE);
+
+    // Solidité jugée avec les infos de la personne ; un refus laisse le lien utilisable.
+    const personne = await this.prisma.utilisateur.findUniqueOrThrow({
+      where: { id: utilisateurId },
+      select: { courriel: true, prenom: true, nom: true, entreprise: { select: { nom: true } } },
+    });
+    exigerMotDePasseSolide(
+      motDePasse,
+      indicesPersonnels(personne.courriel, personne.prenom, personne.nom, personne.entreprise.nom),
+    );
 
     const motDePasseHache = await hash(motDePasse, OPTIONS_ARGON2);
     const maintenant = new Date();
