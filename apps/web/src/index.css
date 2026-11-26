@@ -4,6 +4,8 @@
 @import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
+/* Pour ceux qui demandent moins de transparence au système : l'effet vitre devient opaque. */
+@custom-variant transparence-reduite (@media (prefers-reduced-transparency: reduce));
 
 /* Relie chaque variable du thème à une classe Tailwind : --primary → bg-primary, text-primary… */
 @theme inline {

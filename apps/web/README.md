@@ -8,12 +8,13 @@ Installation : voir le [README principal](../../README.md). Commandes à lancer 
 
 | Commande | Rôle |
 | --- | --- |
-| `npm run dev -w @relnis/web` | Interface sur <http://localhost:5173> |
+| `npm run dev -w @relnis/web` | Interface sur <http://localhost:5173> (`/api` est relayé vers l'API sur le port 3000 : lancer l'API aussi) |
 | `npm run build -w @relnis/web` | Vérifie les types et construit le site |
 
 ## Règles
 
 - **Textes** : jamais en dur ; une clé dans `src/locales/fr.json` et `en.json`, affichée avec `t('ecran.cle')`.
+- **Langues** : en ajouter une = une ligne dans `src/langues.ts` + un fichier `src/locales/xx.json`.
 - **Couleurs** (`src/index.css`) : `variant="action"` (orange) une seule fois par écran ; `text-lien` pour les liens ; `bg-ia` pour l'IA ; `bg-succes`, `bg-alerte`, `bg-erreur`, `bg-info` toujours avec une icône.
 - **Accessibilité** : clavier, étiquettes sur les champs, `alt` sur les images.
 - **Imports** : `@/` = `src/`.

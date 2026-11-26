@@ -12,4 +12,9 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  server: {
+    // /api passe à l'API : une seule origine pour le navigateur (cookies, CSRF), comme Vercel en production.
+    // Pas de changeOrigin : la protection CSRF de l'API compare l'origine à l'hôte d'origine.
+    proxy: { '/api': 'http://localhost:3000' },
+  },
 })

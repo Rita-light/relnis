@@ -1,8 +1,7 @@
 import i18n from 'i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
-import en from './locales/en.json'
-import fr from './locales/fr.json'
+import { LANGUES } from './langues'
 
 // Garde <html lang="…"> à jour : un lecteur d'écran lit le texte avec le bon accent.
 // L'écouteur est posé AVANT init(), pour attraper aussi la langue choisie au démarrage.
@@ -14,12 +13,9 @@ void i18n
   .use(LanguageDetector) // 1. choix gardé dans le navigateur, 2. langue du navigateur
   .use(initReactI18next) // branche i18next sur React
   .init({
-    resources: {
-      fr: { translation: fr },
-      en: { translation: en },
-    },
+    resources: Object.fromEntries(LANGUES.map((l) => [l.code, { translation: l.textes }])),
     fallbackLng: 'fr', // 3. français par défaut (Loi 96)
-    supportedLngs: ['fr', 'en'],
+    supportedLngs: LANGUES.map((l) => l.code),
     load: 'languageOnly', // fr-CA → fr, en-US → en
     interpolation: { escapeValue: false }, // React protège déjà contre l'injection de code
     detection: {

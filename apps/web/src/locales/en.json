@@ -1,23 +1,75 @@
 {
   "commun": {
-    "autreLangue": "Français"
+    "langue": "Language",
+    "chargement": "Loading…"
   },
-  "testTheme": {
-    "titre": "Relnis — theme test",
-    "boutons": "Buttons",
-    "validerSortie": "Confirm stock out",
-    "boutonParDefaut": "Default button",
-    "annuler": "Cancel",
-    "discret": "Subtle",
-    "voirHistorique": "View history",
-    "lienExemple": "A link uses dark Ocean",
-    "etats": "States (always an icon + text)",
-    "sortieEnregistree": "Stock out recorded",
-    "stockBas": "Low stock",
-    "stockInsuffisant": "Insufficient stock",
-    "information": "Information",
-    "lueParIA": "Read by AI",
-    "modeSombre": "Switch to dark mode",
-    "modeClair": "Switch to light mode"
+  "champs": {
+    "courriel": "Email",
+    "motDePasse": "Password"
+  },
+  "validation": {
+    "requis": "This field is required.",
+    "courrielInvalide": "Enter a valid email address (e.g. name@company.ca).",
+    "tropCourt": "At least {{min}} characters.",
+    "tropLong": "This text is too long.",
+    "invalide": "This value is not valid."
+  },
+  "erreurs": {
+    "IDENTIFIANTS_INVALIDES": "Incorrect email or password.",
+    "COURRIEL_NON_VERIFIE": "Please confirm your email first: open the link we sent you.",
+    "COMPTE_BLOQUE_TEMPORAIREMENT": "Too many attempts. Try again in 15 minutes.",
+    "TROP_DE_DEMANDES": "Too many requests. Wait a moment, then try again.",
+    "COURRIEL_DEJA_UTILISE": "This email is already used by an account.",
+    "JETON_INVALIDE": "This link is not valid or has already been used.",
+    "JETON_EXPIRE": "This link has expired. Request a new one.",
+    "SESSION_INVALIDE": "Your session has ended. Please sign in again.",
+    "DONNEES_INVALIDES": "Some information is not valid. Please check the form.",
+    "SERVICE_INDISPONIBLE": "The service is temporarily unavailable. Try again in a moment.",
+    "ERREUR_RESEAU": "Unable to reach the server. Check your Internet connection.",
+    "ERREUR_INTERNE": "An unexpected error occurred. Please try again."
+  },
+  "authentification": {
+    "panneau": {
+      "titre": "Your inventory, clear and up to date, for the whole team.",
+      "sousTitre": "Items, locations and alerts, all in one place.",
+      "emplacements": "Track your items in every location",
+      "alertes": "Get notified before you run out of stock"
+    },
+    "apercu": {
+      "titre": "Main warehouse",
+      "tuyau": "PEX pipe ½ in",
+      "raccord": "Brass fitting ¾ in",
+      "ruban": "Teflon tape",
+      "enStock": "In stock",
+      "stockBas": "Low stock"
+    }
+  },
+  "connexion": {
+    "titre": "Sign in",
+    "sousTitre": "Welcome back.",
+    "oublie": "Forgot your password?",
+    "seConnecter": "Sign in",
+    "pasDeCompte": "Don't have an account yet?",
+    "creerEntreprise": "Create your company"
+  },
+  "accueil": {
+    "titre": "Home",
+    "bonjour": "Hello {{prenom}}",
+    "bientot": "The dashboard is coming soon.",
+    "seDeconnecter": "Sign out"
+  },
+  "introuvable": {
+    "titre": "Page not found",
+    "texte": "This address does not lead to any page.",
+    "retour": "Back to home"
+  },
+  "piedDePage": {
+    "droits": "© {{annee}} Relnis",
+    "conditions": "Terms of use",
+    "confidentialite": "Privacy"
+  },
+  "indisponible": {
+    "titre": "Service unavailable",
+    "reessayer": "Try again"
   }
 }

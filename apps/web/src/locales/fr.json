@@ -1,23 +1,75 @@
 {
   "commun": {
-    "autreLangue": "English"
+    "langue": "Langue",
+    "chargement": "Chargement…"
   },
-  "testTheme": {
-    "titre": "Relnis — test du thème",
-    "boutons": "Boutons",
-    "validerSortie": "Valider la sortie",
-    "boutonParDefaut": "Bouton par défaut",
-    "annuler": "Annuler",
-    "discret": "Discret",
-    "voirHistorique": "Voir l'historique",
-    "lienExemple": "Un lien utilise l'Océan foncé",
-    "etats": "États (toujours une icône + un texte)",
-    "sortieEnregistree": "Sortie enregistrée",
-    "stockBas": "Stock bas",
-    "stockInsuffisant": "Stock insuffisant",
-    "information": "Information",
-    "lueParIA": "Lue par l'IA",
-    "modeSombre": "Passer en mode sombre",
-    "modeClair": "Passer en mode clair"
+  "champs": {
+    "courriel": "Courriel",
+    "motDePasse": "Mot de passe"
+  },
+  "validation": {
+    "requis": "Ce champ est obligatoire.",
+    "courrielInvalide": "Entrez une adresse courriel valide (ex. nom@entreprise.ca).",
+    "tropCourt": "Au moins {{min}} caractères.",
+    "tropLong": "Ce texte est trop long.",
+    "invalide": "Cette valeur n'est pas valide."
+  },
+  "erreurs": {
+    "IDENTIFIANTS_INVALIDES": "Courriel ou mot de passe incorrect.",
+    "COURRIEL_NON_VERIFIE": "Confirmez d'abord votre courriel : ouvrez le lien que nous vous avons envoyé.",
+    "COMPTE_BLOQUE_TEMPORAIREMENT": "Trop d'essais. Réessayez dans 15 minutes.",
+    "TROP_DE_DEMANDES": "Trop de demandes. Patientez un moment, puis réessayez.",
+    "COURRIEL_DEJA_UTILISE": "Ce courriel est déjà utilisé par un compte.",
+    "JETON_INVALIDE": "Ce lien n'est pas valide ou a déjà servi.",
+    "JETON_EXPIRE": "Ce lien a expiré. Demandez-en un nouveau.",
+    "SESSION_INVALIDE": "Votre session a pris fin. Reconnectez-vous.",
+    "DONNEES_INVALIDES": "Certaines informations ne sont pas valides. Vérifiez le formulaire.",
+    "SERVICE_INDISPONIBLE": "Le service est momentanément indisponible. Réessayez dans un instant.",
+    "ERREUR_RESEAU": "Impossible de joindre le serveur. Vérifiez votre connexion Internet.",
+    "ERREUR_INTERNE": "Une erreur inattendue est survenue. Réessayez."
+  },
+  "authentification": {
+    "panneau": {
+      "titre": "Votre stock, clair et à jour, pour toute l'équipe.",
+      "sousTitre": "Articles, emplacements et alertes, au même endroit.",
+      "emplacements": "Suivez vos articles dans chaque emplacement",
+      "alertes": "Soyez averti avant la rupture de stock"
+    },
+    "apercu": {
+      "titre": "Entrepôt principal",
+      "tuyau": "Tuyau PEX ½ po",
+      "raccord": "Raccord en laiton ¾ po",
+      "ruban": "Ruban de téflon",
+      "enStock": "En stock",
+      "stockBas": "Stock bas"
+    }
+  },
+  "connexion": {
+    "titre": "Connexion",
+    "sousTitre": "Heureux de vous revoir.",
+    "oublie": "Mot de passe oublié ?",
+    "seConnecter": "Se connecter",
+    "pasDeCompte": "Pas encore de compte ?",
+    "creerEntreprise": "Créer votre entreprise"
+  },
+  "accueil": {
+    "titre": "Accueil",
+    "bonjour": "Bonjour {{prenom}}",
+    "bientot": "Le tableau de bord arrive bientôt.",
+    "seDeconnecter": "Se déconnecter"
+  },
+  "introuvable": {
+    "titre": "Page introuvable",
+    "texte": "Cette adresse ne mène à aucune page.",
+    "retour": "Retour à l'accueil"
+  },
+  "piedDePage": {
+    "droits": "© {{annee}} Relnis",
+    "conditions": "Conditions d'utilisation",
+    "confidentialite": "Confidentialité"
+  },
+  "indisponible": {
+    "titre": "Service indisponible",
+    "reessayer": "Réessayer"
   }
 }
