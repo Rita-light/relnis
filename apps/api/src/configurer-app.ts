@@ -43,7 +43,10 @@ export function configurerApp(app: INestApplication): void {
           {
             // ex. { courriel: ['isEmail'], motDePasse: ['minLength'] }
             champs: Object.fromEntries(
-              erreurs.map((e) => [e.property, Object.keys(e.constraints ?? {})]),
+              erreurs.map((e) => [
+                e.property,
+                Object.keys(e.constraints ?? {}),
+              ]),
             ),
           },
         ),

@@ -6,12 +6,17 @@ import type { RedisService } from '../redis/redis.service.js';
 import { GardeConnexion } from './garde-connexion.js';
 
 // Un vrai JwtService, avec une clé de test : on teste la vraie vérification de signature.
-const jwt = new JwtService({ secret: 'cle-de-test', signOptions: { expiresIn: 900 } });
+const jwt = new JwtService({
+  secret: 'cle-de-test',
+  signOptions: { expiresIn: 900 },
+});
 const charge = { sub: 'u1', ent: 'e1', role: 'EMPLOYE', sid: 's1' };
 
 // Simulation du contexte d'une requête, avec ses cookies.
 const simulerContexte = (cookies: Record<string, string> = {}) => {
-  const requete: { cookies: Record<string, string>; utilisateur?: unknown } = { cookies };
+  const requete: { cookies: Record<string, string>; utilisateur?: unknown } = {
+    cookies,
+  };
   const contexte = {
     getHandler: () => () => undefined,
     getClass: () => class {},
@@ -27,7 +32,9 @@ const creerGarde = (
   sessionsRevoquees: string[] = [],
   redisEnPanne = false,
 ) => {
-  const reflector = { getAllAndOverride: () => publique } as unknown as Reflector;
+  const reflector = {
+    getAllAndOverride: () => publique,
+  } as unknown as Reflector;
   const redis = {
     exists: vi.fn(async (cle: string) => {
       if (redisEnPanne) throw new Error('Connection is closed.');
@@ -80,7 +87,7 @@ describe('GardeConnexion', () => {
     await attendreRefus(creerGarde(false).canActivate(contexte));
   });
 
-  it("refuse un bon jeton si sa session a été fermée (révoquée dans Redis)", async () => {
+  it('refuse un bon jeton si sa session a été fermée (révoquée dans Redis)', async () => {
     const { contexte } = simulerContexte({
       relnis_acces: await jwt.signAsync(charge),
     });

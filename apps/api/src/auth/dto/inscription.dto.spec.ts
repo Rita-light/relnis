@@ -49,12 +49,18 @@ describe('InscriptionDto', () => {
   });
 
   it('refuse un mot de passe de plus de 128 caractères', async () => {
-    const { champs } = await valider({ ...valides, motDePasse: 'x'.repeat(129) });
+    const { champs } = await valider({
+      ...valides,
+      motDePasse: 'x'.repeat(129),
+    });
     expect(champs.motDePasse).toContain('maxLength');
   });
 
   it('refuse un courriel invalide', async () => {
-    const { champs } = await valider({ ...valides, courriel: 'pas-un-courriel' });
+    const { champs } = await valider({
+      ...valides,
+      courriel: 'pas-un-courriel',
+    });
     expect(champs.courriel).toContain('isEmail');
   });
 

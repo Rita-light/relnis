@@ -63,7 +63,8 @@ export class InscriptionDto {
   // Consentement obligatoire (Loi 25) : seule la valeur true est acceptée.
   @ApiProperty({
     example: true,
-    description: "Acceptation des conditions d'utilisation et de la politique de confidentialité",
+    description:
+      "Acceptation des conditions d'utilisation et de la politique de confidentialité",
   })
   @Equals(true)
   accepteConditions: boolean;

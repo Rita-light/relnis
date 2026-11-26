@@ -178,7 +178,10 @@ export class AuthService {
 
     const session = await this.prisma.session.findFirst({
       where: {
-        OR: [{ jetonRenouvellementHache: hache }, { jetonPrecedentHache: hache }],
+        OR: [
+          { jetonRenouvellementHache: hache },
+          { jetonPrecedentHache: hache },
+        ],
       },
       include: { utilisateur: true },
     });
@@ -187,7 +190,8 @@ export class AuthService {
     // Ancien jeton : deux onglets (délai de grâce) ou un vol.
     const ancienJeton = session.jetonRenouvellementHache !== hache;
     if (ancienJeton) {
-      const depuisRotation = maintenant - (session.renouveleeLe?.getTime() ?? 0);
+      const depuisRotation =
+        maintenant - (session.renouveleeLe?.getTime() ?? 0);
       if (depuisRotation > DELAI_GRACE_RENOUVELLEMENT_MS) {
         // Vol probable : on coupe tout le monde, la vraie personne se reconnectera.
         await this.revoquerSessions([session.id]);
@@ -198,7 +202,9 @@ export class AuthService {
             motifFermeture: MotifFermeture.REUTILISATION_DETECTEE,
           },
         });
-        this.logger.warn(`Réutilisation d'un jeton de renouvellement (session ${session.id})`);
+        this.logger.warn(
+          `Réutilisation d'un jeton de renouvellement (session ${session.id})`,
+        );
         throw sessionInvalide();
       }
     }
@@ -213,7 +219,9 @@ export class AuthService {
 
     // Délai de grâce : l'autre onglet a déjà fait la rotation.
     if (ancienJeton) {
-      return { jetonAcces: await this.signerAcces(session.utilisateur, session.id) };
+      return {
+        jetonAcces: await this.signerAcces(session.utilisateur, session.id),
+      };
     }
 
     const nouveauJeton = randomBytes(32).toString('base64url');
@@ -227,12 +235,17 @@ export class AuthService {
         derniereActiviteLe: new Date(maintenant),
         // +7 jours, jamais au-delà de la limite de 30 jours.
         expireLe: new Date(
-          Math.min(maintenant + DUREE_INACTIVITE_MS, session.expireAbsoluLe.getTime()),
+          Math.min(
+            maintenant + DUREE_INACTIVITE_MS,
+            session.expireAbsoluLe.getTime(),
+          ),
         ),
       },
     });
     if (count === 0) {
-      return { jetonAcces: await this.signerAcces(session.utilisateur, session.id) };
+      return {
+        jetonAcces: await this.signerAcces(session.utilisateur, session.id),
+      };
     }
 
     // Rôle relu en base : un changement de rôle s'applique au prochain renouvellement.
@@ -248,7 +261,10 @@ export class AuthService {
     const hache = hacherJeton(jeton);
     const session = await this.prisma.session.findFirst({
       where: {
-        OR: [{ jetonRenouvellementHache: hache }, { jetonPrecedentHache: hache }],
+        OR: [
+          { jetonRenouvellementHache: hache },
+          { jetonPrecedentHache: hache },
+        ],
         fermeeLe: null,
       },
     });
@@ -257,7 +273,10 @@ export class AuthService {
     await this.revoquerSessions([session.id]);
     await this.prisma.session.update({
       where: { id: session.id },
-      data: { fermeeLe: new Date(), motifFermeture: MotifFermeture.DECONNEXION },
+      data: {
+        fermeeLe: new Date(),
+        motifFermeture: MotifFermeture.DECONNEXION,
+      },
     });
   }
 
@@ -287,12 +306,15 @@ export class AuthService {
 
     const blocages: string[] = [];
     if (Number(parIp) >= MAX_ECHECS_PAR_IP) blocages.push(champBlocage(ip));
-    if (Number(total) >= MAX_ECHECS_TOTAL) blocages.push(champBlocage(CHAMP_TOTAL));
+    if (Number(total) >= MAX_ECHECS_TOTAL)
+      blocages.push(champBlocage(CHAMP_TOTAL));
     if (blocages.length === 0) return;
 
     const lot = this.redis.multi();
     for (const champ of blocages) {
-      lot.hset(echecs, champ, '1').hpexpire(echecs, DUREE_BLOCAGE_MS, 'FIELDS', 1, champ);
+      lot
+        .hset(echecs, champ, '1')
+        .hpexpire(echecs, DUREE_BLOCAGE_MS, 'FIELDS', 1, champ);
     }
     await executerLot(lot);
   }
@@ -432,16 +454,29 @@ export class AuthService {
   /** Change le mot de passe avec le jeton du lien, puis ferme toutes les sessions. */
   async reinitialiserMotDePasse(jeton: string, motDePasse: string) {
     // Jeton vérifié avant Argon2 : un jeton inventé ne coûte rien au serveur.
-    const { utilisateurId } = await this.jetons.verifier(jeton, TypeJeton.MOT_DE_PASSE);
+    const { utilisateurId } = await this.jetons.verifier(
+      jeton,
+      TypeJeton.MOT_DE_PASSE,
+    );
 
     // Solidité jugée avec les infos de la personne ; un refus laisse le lien utilisable.
     const personne = await this.prisma.utilisateur.findUniqueOrThrow({
       where: { id: utilisateurId },
-      select: { courriel: true, prenom: true, nom: true, entreprise: { select: { nom: true } } },
+      select: {
+        courriel: true,
+        prenom: true,
+        nom: true,
+        entreprise: { select: { nom: true } },
+      },
     });
     exigerMotDePasseSolide(
       motDePasse,
-      indicesPersonnels(personne.courriel, personne.prenom, personne.nom, personne.entreprise.nom),
+      indicesPersonnels(
+        personne.courriel,
+        personne.prenom,
+        personne.nom,
+        personne.entreprise.nom,
+      ),
     );
 
     const motDePasseHache = await hash(motDePasse, OPTIONS_ARGON2);

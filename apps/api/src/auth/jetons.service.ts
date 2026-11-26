@@ -49,7 +49,11 @@ export class JetonsService {
       throw jetonInvalide();
     }
     if (trouve.expireLe < new Date()) {
-      throw new ErreurApi(HttpStatus.BAD_REQUEST, 'JETON_EXPIRE', 'Lien expiré');
+      throw new ErreurApi(
+        HttpStatus.BAD_REQUEST,
+        'JETON_EXPIRE',
+        'Lien expiré',
+      );
     }
     return trouve;
   }

@@ -81,4 +81,8 @@ export class GardeConnexion implements CanActivate {
 }
 
 const nonAuthentifie = () =>
-  new ErreurApi(HttpStatus.UNAUTHORIZED, 'NON_AUTHENTIFIE', 'Connexion requise');
+  new ErreurApi(
+    HttpStatus.UNAUTHORIZED,
+    'NON_AUTHENTIFIE',
+    'Connexion requise',
+  );

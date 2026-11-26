@@ -36,7 +36,9 @@ export class FiltreErreurs implements ExceptionFilter {
       const corps = exception.getResponse();
       // Garde le détail utile (ex. adresse de santé), pas le corps par défaut de NestJS.
       const details =
-        typeof corps === 'object' && !('statusCode' in corps) ? corps : undefined;
+        typeof corps === 'object' && !('statusCode' in corps)
+          ? corps
+          : undefined;
       reponse.status(statut).json({
         code: CODES_PAR_STATUT[statut] ?? 'ERREUR_HTTP',
         message: exception.message,

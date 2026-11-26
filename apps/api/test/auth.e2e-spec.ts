@@ -79,8 +79,9 @@ describe('Authentification (e2e)', () => {
   };
 
   // Les cookies posés par une réponse, sous forme de tableau de chaînes.
-  const cookies = (res: { headers: Record<string, string | string[] | undefined> }) =>
-    ([] as string[]).concat(res.headers['set-cookie'] ?? []);
+  const cookies = (res: {
+    headers: Record<string, string | string[] | undefined>;
+  }) => ([] as string[]).concat(res.headers['set-cookie'] ?? []);
 
   // La valeur d'un cookie posé par une réponse (undefined s'il n'a pas été posé).
   const valeurCookie = (
@@ -161,7 +162,9 @@ describe('Authentification (e2e)', () => {
       expect(utilisateur.role).toBe('ADMINISTRATEUR');
       expect(utilisateur.courrielVerifie).toBe(false);
       // Argon2id avec les réglages OWASP (écrits dans la chaîne enregistrée).
-      expect(utilisateur.motDePasseHache).toMatch(/^\$argon2id\$v=19\$m=19456,t=2,p=1\$/);
+      expect(utilisateur.motDePasseHache).toMatch(
+        /^\$argon2id\$v=19\$m=19456,t=2,p=1\$/,
+      );
     });
 
     it('enregistre le courriel en minuscules', async () => {
@@ -214,7 +217,11 @@ describe('Authentification (e2e)', () => {
       const res = await inscrire(donnees).expect(400);
 
       expect(res.body.code).toBe('MOT_DE_PASSE_TROP_FAIBLE');
-      expect(await prisma.utilisateur.count({ where: { courriel: donnees.courriel } })).toBe(0);
+      expect(
+        await prisma.utilisateur.count({
+          where: { courriel: donnees.courriel },
+        }),
+      ).toBe(0);
     });
 
     it('refuse un champ non prévu, ex. se donner un rôle (400)', async () => {
@@ -290,7 +297,7 @@ describe('Authentification (e2e)', () => {
       await verifier(nouveau).expect(200);
     });
 
-    it("répond pareil pour un courriel inconnu, sans rien envoyer (202)", async () => {
+    it('répond pareil pour un courriel inconnu, sans rien envoyer (202)', async () => {
       const inconnu = `inconnu-${randomUUID()}@exemple.ca`;
       await renvoyer(inconnu).expect(202);
       boiteCourriels.assertNotSent({ to: inconnu });
@@ -303,8 +310,12 @@ describe('Authentification (e2e)', () => {
       const res = await connecter(courriel, motDePasse).expect(200);
 
       const poses = cookies(res);
-      expect(poses.find((c) => c.startsWith('relnis_acces='))).toMatch(/HttpOnly/);
-      expect(poses.find((c) => c.startsWith('relnis_renouvellement='))).toMatch(/HttpOnly/);
+      expect(poses.find((c) => c.startsWith('relnis_acces='))).toMatch(
+        /HttpOnly/,
+      );
+      expect(poses.find((c) => c.startsWith('relnis_renouvellement='))).toMatch(
+        /HttpOnly/,
+      );
       // Les jetons ne sont jamais dans le corps de la réponse.
       expect(JSON.stringify(res.body)).not.toMatch(/jeton/i);
 
@@ -336,8 +347,14 @@ describe('Authentification (e2e)', () => {
     it('refuse un mauvais mot de passe et un courriel inconnu avec le même code (401)', async () => {
       const { courriel } = await compteVerifie();
 
-      const mauvais = await connecter(courriel, 'pas-le-bon-mot-de-passe').expect(401);
-      const inconnu = await connecter(`inconnu-${randomUUID()}@exemple.ca`, 'peu-importe-ici').expect(401);
+      const mauvais = await connecter(
+        courriel,
+        'pas-le-bon-mot-de-passe',
+      ).expect(401);
+      const inconnu = await connecter(
+        `inconnu-${randomUUID()}@exemple.ca`,
+        'peu-importe-ici',
+      ).expect(401);
       expect(mauvais.body.code).toBe('IDENTIFIANTS_INVALIDES');
       expect(inconnu.body.code).toBe('IDENTIFIANTS_INVALIDES');
     });
@@ -346,7 +363,9 @@ describe('Authentification (e2e)', () => {
       const donnees = nouvelleInscription();
       await inscrire(donnees).expect(201);
 
-      const res = await connecter(donnees.courriel, donnees.motDePasse).expect(403);
+      const res = await connecter(donnees.courriel, donnees.motDePasse).expect(
+        403,
+      );
       expect(res.body.code).toBe('COURRIEL_NON_VERIFIE');
     });
 
@@ -386,7 +405,7 @@ describe('Authentification (e2e)', () => {
       expect((await sessionDe(courriel)).fermeeLe).toBeNull();
     });
 
-    it("ferme la session si un ancien jeton resservait après le délai (vol probable)", async () => {
+    it('ferme la session si un ancien jeton resservait après le délai (vol probable)', async () => {
       const { courriel, jeton: ancien, acces } = await sessionOuverte();
       const res = await renouveler(ancien).expect(200);
       const nouveau = valeurCookie(res, 'relnis_renouvellement') ?? '';
@@ -428,7 +447,10 @@ describe('Authentification (e2e)', () => {
 
     it('refuse le renouvellement si le compte a été désactivé', async () => {
       const { courriel, jeton } = await sessionOuverte();
-      await prisma.utilisateur.update({ where: { courriel }, data: { actif: false } });
+      await prisma.utilisateur.update({
+        where: { courriel },
+        data: { actif: false },
+      });
       await renouveler(jeton).expect(401);
     });
 
@@ -438,7 +460,9 @@ describe('Authentification (e2e)', () => {
         .set(SANS_LIMITE)
         .expect(401);
       expect(res.body.code).toBe('SESSION_INVALIDE');
-      expect(cookies(res).some((c) => c.startsWith('relnis_acces=;'))).toBe(true);
+      expect(cookies(res).some((c) => c.startsWith('relnis_acces=;'))).toBe(
+        true,
+      );
     });
 
     it('déconnexion : ferme la session et efface les cookies', async () => {
@@ -450,8 +474,12 @@ describe('Authentification (e2e)', () => {
         .expect(204);
 
       // Un cookie vide qui expire en 1970 : le navigateur le supprime.
-      expect(cookies(res).find((c) => c.startsWith('relnis_acces='))).toMatch(/1970/);
-      expect(cookies(res).find((c) => c.startsWith('relnis_renouvellement='))).toMatch(/1970/);
+      expect(cookies(res).find((c) => c.startsWith('relnis_acces='))).toMatch(
+        /1970/,
+      );
+      expect(
+        cookies(res).find((c) => c.startsWith('relnis_renouvellement=')),
+      ).toMatch(/1970/);
       const session = await sessionDe(courriel);
       expect(session.motifFermeture).toBe('DECONNEXION');
       await renouveler(jeton).expect(401);
@@ -502,7 +530,10 @@ describe('Authentification (e2e)', () => {
       const { courriel, motDePasse } = await compteVerifie();
       await demander(courriel).expect(202);
 
-      await reinitialiser(await jetonMotDePasse(courriel), 'un-tout-nouveau-mot-de-passe').expect(200);
+      await reinitialiser(
+        await jetonMotDePasse(courriel),
+        'un-tout-nouveau-mot-de-passe',
+      ).expect(200);
 
       await connecter(courriel, motDePasse).expect(401);
       await connecter(courriel, 'un-tout-nouveau-mot-de-passe').expect(200);
@@ -511,14 +542,19 @@ describe('Authentification (e2e)', () => {
     it("ferme toutes les sessions ouvertes, et leurs cookies d'accès sont refusés tout de suite", async () => {
       const { courriel, jeton, acces } = await sessionOuverte();
       await demander(courriel).expect(202);
-      await reinitialiser(await jetonMotDePasse(courriel), 'un-tout-nouveau-mot-de-passe').expect(200);
+      await reinitialiser(
+        await jetonMotDePasse(courriel),
+        'un-tout-nouveau-mot-de-passe',
+      ).expect(200);
 
       await renouveler(jeton).expect(401);
       await moi(acces).expect(401);
-      expect((await sessionDe(courriel)).motifFermeture).toBe('MOT_DE_PASSE_CHANGE');
+      expect((await sessionDe(courriel)).motifFermeture).toBe(
+        'MOT_DE_PASSE_CHANGE',
+      );
     });
 
-    it("une connexion en cours ne survit pas à une réinitialisation simultanée", async () => {
+    it('une connexion en cours ne survit pas à une réinitialisation simultanée', async () => {
       const { courriel, motDePasse } = await compteVerifie();
       const lire = prisma.utilisateur.findUnique.bind(prisma.utilisateur);
       // Juste après la lecture par la connexion, une réinitialisation change le mot de passe.
@@ -538,7 +574,9 @@ describe('Authentification (e2e)', () => {
       espion.mockRestore();
 
       expect(res.body.code).toBe('IDENTIFIANTS_INVALIDES');
-      expect(await prisma.session.count({ where: { utilisateur: { courriel } } })).toBe(0);
+      expect(
+        await prisma.session.count({ where: { utilisateur: { courriel } } }),
+      ).toBe(0);
     });
 
     it('refuse un lien déjà utilisé, ou expiré (400)', async () => {
@@ -547,7 +585,10 @@ describe('Authentification (e2e)', () => {
       const jeton = await jetonMotDePasse(courriel);
 
       await reinitialiser(jeton, 'un-tout-nouveau-mot-de-passe').expect(200);
-      const reutilise = await reinitialiser(jeton, 'encore-un-autre-mot-de-passe').expect(400);
+      const reutilise = await reinitialiser(
+        jeton,
+        'encore-un-autre-mot-de-passe',
+      ).expect(400);
       expect(reutilise.body.code).toBe('JETON_INVALIDE');
 
       // Un autre compte, dont le lien a vieilli d'une heure.
@@ -555,18 +596,27 @@ describe('Authentification (e2e)', () => {
       await demander(autre.courriel).expect(202);
       const jetonAutre = await jetonMotDePasse(autre.courriel);
       await prisma.jeton.updateMany({
-        where: { utilisateur: { courriel: autre.courriel }, type: 'MOT_DE_PASSE' },
+        where: {
+          utilisateur: { courriel: autre.courriel },
+          type: 'MOT_DE_PASSE',
+        },
         data: { expireLe: new Date(Date.now() - 1000) },
       });
-      const expire = await reinitialiser(jetonAutre, 'un-tout-nouveau-mot-de-passe').expect(400);
+      const expire = await reinitialiser(
+        jetonAutre,
+        'un-tout-nouveau-mot-de-passe',
+      ).expect(400);
       expect(expire.body.code).toBe('JETON_EXPIRE');
     });
 
-    it("refuse un jeton de vérification de courriel à la place (pas le même usage)", async () => {
+    it('refuse un jeton de vérification de courriel à la place (pas le même usage)', async () => {
       const donnees = nouvelleInscription();
       await inscrire(donnees).expect(201);
 
-      const res = await reinitialiser(await jetonRecu(donnees.courriel), 'un-tout-nouveau-mot-de-passe').expect(400);
+      const res = await reinitialiser(
+        await jetonRecu(donnees.courriel),
+        'un-tout-nouveau-mot-de-passe',
+      ).expect(400);
       expect(res.body.code).toBe('JETON_INVALIDE');
     });
 
@@ -574,7 +624,10 @@ describe('Authentification (e2e)', () => {
       const { courriel } = await compteVerifie();
       await demander(courriel).expect(202);
 
-      const res = await reinitialiser(await jetonMotDePasse(courriel), 'court').expect(400);
+      const res = await reinitialiser(
+        await jetonMotDePasse(courriel),
+        'court',
+      ).expect(400);
       expect(res.body.details.champs).toHaveProperty('motDePasse');
     });
 
@@ -600,7 +653,10 @@ describe('Authentification (e2e)', () => {
         await connecter(courriel, 'pas-le-bon-mot-de-passe').expect(401);
       }
       await demander(courriel).expect(202);
-      await reinitialiser(await jetonMotDePasse(courriel), 'un-tout-nouveau-mot-de-passe').expect(200);
+      await reinitialiser(
+        await jetonMotDePasse(courriel),
+        'un-tout-nouveau-mot-de-passe',
+      ).expect(200);
 
       await connecter(courriel, 'un-tout-nouveau-mot-de-passe').expect(200);
     });
@@ -610,8 +666,13 @@ describe('Authentification (e2e)', () => {
       await inscrire(donnees).expect(201);
       await demander(donnees.courriel).expect(202);
 
-      await reinitialiser(await jetonMotDePasse(donnees.courriel), 'un-tout-nouveau-mot-de-passe').expect(200);
-      await connecter(donnees.courriel, 'un-tout-nouveau-mot-de-passe').expect(200);
+      await reinitialiser(
+        await jetonMotDePasse(donnees.courriel),
+        'un-tout-nouveau-mot-de-passe',
+      ).expect(200);
+      await connecter(donnees.courriel, 'un-tout-nouveau-mot-de-passe').expect(
+        200,
+      );
     });
   });
 
@@ -674,7 +735,8 @@ describe('Authentification (e2e)', () => {
         await connecter(courriel, 'pas-le-bon-mot-de-passe').expect(401);
       }
       // Le compteur de cette IP n'a plus que 2 s (fenêtre presque finie).
-      const ip = (await redis.hkeys(cle)).find((champ) => champ !== CHAMP_TOTAL) ?? '';
+      const ip =
+        (await redis.hkeys(cle)).find((champ) => champ !== CHAMP_TOTAL) ?? '';
       await redis.hpexpire(cle, 2000, 'FIELDS', 1, ip);
 
       await connecter(courriel, 'pas-le-bon-mot-de-passe').expect(401); // 5e échec

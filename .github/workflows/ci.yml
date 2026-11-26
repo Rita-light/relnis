@@ -76,6 +76,10 @@ jobs:
       - name: Vérifier le code (lint)
         run: npm run lint
 
+      # Échoue si un fichier n'est pas au format Prettier (corriger avec npm run format -w …).
+      - name: Vérifier le formatage
+        run: npm run format:check
+
       - name: Vérifier les types
         run: npm run typecheck
 

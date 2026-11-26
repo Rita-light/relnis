@@ -59,8 +59,13 @@ export class AuthController {
   @Publique()
   @Throttle({ default: { limit: 5, ttl: minutes(15) } }) // chaque inscription envoie un courriel
   @Post('inscription')
-  @ApiCreatedResponse({ description: 'Entreprise et compte administrateur créés, courriel de vérification envoyé' })
-  @ApiBadRequestResponse({ description: 'DONNEES_INVALIDES ou MOT_DE_PASSE_TROP_FAIBLE' })
+  @ApiCreatedResponse({
+    description:
+      'Entreprise et compte administrateur créés, courriel de vérification envoyé',
+  })
+  @ApiBadRequestResponse({
+    description: 'DONNEES_INVALIDES ou MOT_DE_PASSE_TROP_FAIBLE',
+  })
   @ApiConflictResponse({ description: 'COURRIEL_DEJA_UTILISE' })
   inscrire(@Body() dto: InscriptionDto) {
     return this.auth.inscrire(dto);
@@ -81,7 +86,9 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: minutes(15) } }) // empêche d'inonder une boîte de courriels
   @Post('renvoyer-verification')
   @HttpCode(HttpStatus.ACCEPTED)
-  @ApiAcceptedResponse({ description: 'Un lien est envoyé si un compte non vérifié existe' })
+  @ApiAcceptedResponse({
+    description: 'Un lien est envoyé si un compte non vérifié existe',
+  })
   async renvoyerVerification(@Body() dto: RenvoyerVerificationDto) {
     await this.auth.renvoyerVerification(dto.courriel);
   }
@@ -116,7 +123,10 @@ export class AuthController {
   @Throttle({ default: { limit: 30, ttl: minutes(1) } })
   @Post('renouveler')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ description: "Nouveau jeton d'accès (et nouveau jeton de renouvellement) en cookies" })
+  @ApiOkResponse({
+    description:
+      "Nouveau jeton d'accès (et nouveau jeton de renouvellement) en cookies",
+  })
   @ApiUnauthorizedResponse({ description: 'SESSION_INVALIDE : se reconnecter' })
   async renouveler(
     @Req() requete: Request,
@@ -155,7 +165,9 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: minutes(15) } }) // empêche d'inonder une boîte de courriels
   @Post('mot-de-passe-oublie')
   @HttpCode(HttpStatus.ACCEPTED)
-  @ApiAcceptedResponse({ description: 'Un lien est envoyé si un compte actif existe' })
+  @ApiAcceptedResponse({
+    description: 'Un lien est envoyé si un compte actif existe',
+  })
   async demanderReinitialisation(@Body() dto: MotDePasseOublieDto) {
     await this.auth.demanderReinitialisation(dto.courriel);
   }
@@ -164,8 +176,14 @@ export class AuthController {
   @Throttle({ default: { limit: 10, ttl: minutes(1) } }) // empêche d'essayer des jetons en rafale
   @Post('nouveau-mot-de-passe')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ description: 'Mot de passe changé, toutes les sessions fermées : se reconnecter' })
-  @ApiBadRequestResponse({ description: 'JETON_INVALIDE, JETON_EXPIRE, DONNEES_INVALIDES ou MOT_DE_PASSE_TROP_FAIBLE' })
+  @ApiOkResponse({
+    description:
+      'Mot de passe changé, toutes les sessions fermées : se reconnecter',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'JETON_INVALIDE, JETON_EXPIRE, DONNEES_INVALIDES ou MOT_DE_PASSE_TROP_FAIBLE',
+  })
   async reinitialiserMotDePasse(
     @Body() dto: NouveauMotDePasseDto,
     @Res({ passthrough: true }) reponse: Response,

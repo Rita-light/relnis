@@ -31,5 +31,4 @@ export function cleErreur(erreur: unknown): `erreurs.${CodeErreur}` {
 }
 
 /** Vrai si l'erreur vient de l'API avec ce code. */
-export const aLeCode = (erreur: unknown, code: CodeErreur) =>
-  erreur instanceof ErreurApi && erreur.code === code
+export const aLeCode = (erreur: unknown, code: CodeErreur) => erreur instanceof ErreurApi && erreur.code === code

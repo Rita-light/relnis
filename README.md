@@ -59,7 +59,7 @@ npm run start:dev -w @relnis/api     # API : http://localhost:3000/api/docs
 npm run dev -w @relnis/web           # interface : http://localhost:5173
 ```
 
-`npm run verifier` lance tout ce que vérifie le CI (lint, types, tests, build).
+`npm run verifier` lance tout ce que vérifie le CI (lint, formatage, types, tests, build). Formater : `npm run format -w @relnis/api` (ou `-w @relnis/web`).
 
 Détails : [apps/api](apps/api/README.md) · [apps/web](apps/web/README.md)
 

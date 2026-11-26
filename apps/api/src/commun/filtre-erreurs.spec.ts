@@ -1,4 +1,9 @@
-import { ArgumentsHost, HttpStatus, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  HttpStatus,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ThrottlerException } from '@nestjs/throttler';
 import { ErreurApi } from './erreur-api.js';
 import { FiltreErreurs } from './filtre-erreurs.js';
@@ -16,10 +21,14 @@ const simulerReponse = () => {
 describe('FiltreErreurs', () => {
   const filtre = new FiltreErreurs();
 
-  it("renvoie une ErreurApi telle quelle : { code, message, details }", () => {
+  it('renvoie une ErreurApi telle quelle : { code, message, details }', () => {
     const { reponse, hote } = simulerReponse();
     filtre.catch(
-      new ErreurApi(HttpStatus.CONFLICT, 'COURRIEL_DEJA_UTILISE', 'Déjà utilisé'),
+      new ErreurApi(
+        HttpStatus.CONFLICT,
+        'COURRIEL_DEJA_UTILISE',
+        'Déjà utilisé',
+      ),
       hote,
     );
     expect(reponse.status).toHaveBeenCalledWith(409);
@@ -45,7 +54,9 @@ describe('FiltreErreurs', () => {
   });
 
   it('cache le détail d’une erreur imprévue (500 ERREUR_INTERNE), mais la journalise', () => {
-    const journal = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+    const journal = vi
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => {});
     const { reponse, hote } = simulerReponse();
 
     filtre.catch(new Error('mot de passe de la base : secret123'), hote);

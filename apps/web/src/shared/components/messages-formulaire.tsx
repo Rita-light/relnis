@@ -20,7 +20,9 @@ export function ErreurChamp({ erreur, min, message }: { erreur?: ErreurRhf; min?
     maxLength: t('validation.tropLong'),
   }
   const texte =
-    message ?? messages[erreur.type] ?? (/^[A-Z_]+$/.test(erreur.type) ? t(cleCode(erreur.type)) : t('validation.invalide'))
+    message ??
+    messages[erreur.type] ??
+    (/^[A-Z_]+$/.test(erreur.type) ? t(cleCode(erreur.type)) : t('validation.invalide'))
   return <FieldError>{texte}</FieldError>
 }
 

@@ -21,7 +21,9 @@ import { SanteModule } from './sante/sante.module.js';
     MailModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        transport: new SmtpTransport({ url: config.getOrThrow<string>('SMTP_URL') }),
+        transport: new SmtpTransport({
+          url: config.getOrThrow<string>('SMTP_URL'),
+        }),
         from: config.getOrThrow<string>('COURRIEL_EXPEDITEUR'),
         // Modèles de ./courriels/modeles, enveloppés dans layout.html. Relus à chaque envoi hors production.
         templates: new FileTemplateEngine({
@@ -43,7 +45,9 @@ import { SanteModule } from './sante/sante.module.js';
         // Tests seulement : l'en-tête x-test-sans-limite permet d'enchaîner les requêtes.
         skipIf: (contexte) =>
           process.env.NODE_ENV === 'test' &&
-          contexte.switchToHttp().getRequest<Request>().headers['x-test-sans-limite'] === '1',
+          contexte.switchToHttp().getRequest<Request>().headers[
+            'x-test-sans-limite'
+          ] === '1',
       }),
     }),
     SanteModule, // GET /api/v1/sante
