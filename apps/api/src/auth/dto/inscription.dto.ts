@@ -13,6 +13,11 @@ import {
   sansEspacesAutour,
 } from '../../commun/transformations.js';
 
+/** Règles du mot de passe, communes à l'inscription et à la réinitialisation. */
+export const MOT_DE_PASSE_MIN = 12;
+// 128 au plus : un mot de passe énorme ralentirait le hachage (déni de service).
+export const MOT_DE_PASSE_MAX = 128;
+
 /**
  * Données reçues pour créer une entreprise et son administrateur.
  * @ApiProperty → documentation Swagger ; @Transform → nettoyage ; @Is…/@Max… → règles de validation.
@@ -45,11 +50,14 @@ export class InscriptionDto {
   @MaxLength(254)
   courriel: string;
 
-  // 128 au plus : un mot de passe énorme ralentirait le hachage (déni de service).
-  @ApiProperty({ example: 'un-mot-de-passe-solide', minLength: 12, maxLength: 128 })
+  @ApiProperty({
+    example: 'un-mot-de-passe-solide',
+    minLength: MOT_DE_PASSE_MIN,
+    maxLength: MOT_DE_PASSE_MAX,
+  })
   @IsString()
-  @MinLength(12)
-  @MaxLength(128)
+  @MinLength(MOT_DE_PASSE_MIN)
+  @MaxLength(MOT_DE_PASSE_MAX)
   motDePasse: string;
 
   // Consentement obligatoire (Loi 25) : seule la valeur true est acceptée.

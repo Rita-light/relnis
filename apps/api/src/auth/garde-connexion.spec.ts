@@ -2,6 +2,7 @@ import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ErreurApi } from '../commun/erreur-api.js';
+import type { RedisService } from '../redis/redis.service.js';
 import { GardeConnexion } from './garde-connexion.js';
 
 // Un vrai JwtService, avec une clé de test : on teste la vraie vérification de signature.
@@ -19,9 +20,21 @@ const simulerContexte = (cookies: Record<string, string> = {}) => {
   return { requete, contexte };
 };
 
-const creerGarde = (publique: boolean) => {
+// Faux Redis : la liste des sessions révoquées est vide, sauf si on en donne une.
+// redisEnPanne : chaque lecture échoue, comme si Redis ne répondait plus.
+const creerGarde = (
+  publique: boolean,
+  sessionsRevoquees: string[] = [],
+  redisEnPanne = false,
+) => {
   const reflector = { getAllAndOverride: () => publique } as unknown as Reflector;
-  return new GardeConnexion(reflector, jwt);
+  const redis = {
+    exists: vi.fn(async (cle: string) => {
+      if (redisEnPanne) throw new Error('Connection is closed.');
+      return sessionsRevoquees.some((sid) => cle.endsWith(`:${sid}`)) ? 1 : 0;
+    }),
+  } as unknown as RedisService;
+  return new GardeConnexion(reflector, jwt, redis);
 };
 
 // Vérifie que la promesse échoue avec 401 NON_AUTHENTIFIE.
@@ -65,6 +78,24 @@ describe('GardeConnexion', () => {
     });
     const { contexte } = simulerContexte({ relnis_acces: expire });
     await attendreRefus(creerGarde(false).canActivate(contexte));
+  });
+
+  it("refuse un bon jeton si sa session a été fermée (révoquée dans Redis)", async () => {
+    const { contexte } = simulerContexte({
+      relnis_acces: await jwt.signAsync(charge),
+    });
+    await attendreRefus(creerGarde(false, ['s1']).canActivate(contexte));
+  });
+
+  it('refuse avec 503 si Redis est en panne (on ne peut pas savoir si la session est fermée)', async () => {
+    const { contexte } = simulerContexte({
+      relnis_acces: await jwt.signAsync(charge),
+    });
+    const erreur = await creerGarde(false, [], true)
+      .canActivate(contexte)
+      .catch((e: unknown) => e);
+    expect((erreur as ErreurApi).getStatus()).toBe(503);
+    expect((erreur as ErreurApi).code).toBe('SERVICE_INDISPONIBLE');
   });
 
   it('accepte un bon jeton et attache la personne connectée à la requête', async () => {

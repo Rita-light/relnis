@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { hash, verify } from '@node-rs/argon2';
@@ -11,17 +11,29 @@ import {
 import { ErreurApi } from '../commun/erreur-api.js';
 import { CourrielsService } from '../courriels/courriels.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { executerLot } from '../redis/executer-lot.js';
 import { RedisService } from '../redis/redis.service.js';
 import { ConnexionDto } from './dto/connexion.dto.js';
 import { InscriptionDto } from './dto/inscription.dto.js';
+import { hacherJeton } from './hacher-jeton.js';
+import { JetonsService } from './jetons.service.js';
 import {
   ChargeJetonAcces,
+  cleSessionRevoquee,
   DELAI_GRACE_RENOUVELLEMENT_MS,
   DUREE_ABSOLUE_MS,
+  DUREE_ACCES_SECONDES,
   DUREE_INACTIVITE_MS,
 } from './session.js';
 
-// Une seule réponse pour tous les refus de renouvellement : on ne dit pas pourquoi.
+const identifiantsInvalides = () =>
+  new ErreurApi(
+    HttpStatus.UNAUTHORIZED,
+    'IDENTIFIANTS_INVALIDES',
+    'Courriel ou mot de passe incorrect',
+  );
+
+// Même réponse pour tous les refus : on ne dit pas pourquoi.
 const sessionInvalide = () =>
   new ErreurApi(
     HttpStatus.UNAUTHORIZED,
@@ -29,38 +41,34 @@ const sessionInvalide = () =>
     'Session expirée : reconnectez-vous',
   );
 
-/**
- * Réglages Argon2id recommandés par l'OWASP.
- * Écrits ici pour qu'ils ne changent jamais en silence.
- */
+/** Réglages Argon2id de l'OWASP, écrits ici pour ne jamais changer en silence. */
 export const OPTIONS_ARGON2 = {
-  memoryCost: 19456, // en Kio (19 Mio)
-  timeCost: 2, // nombre de passes
+  memoryCost: 19456, // Kio (19 Mio)
+  timeCost: 2, // passes
   parallelism: 1,
 };
 
-/** Durée de validité d'un lien de vérification. */
 const DUREE_VERIFICATION_HEURES = 24;
+const DUREE_REINITIALISATION_MINUTES = 60; // court : ce lien ouvre le compte
 
-/** Blocage d'un compte après trop de mots de passe ratés (même depuis plusieurs adresses IP). */
-export const MAX_ECHECS_CONNEXION = 5;
-const DUREE_BLOCAGE_MS = 15 * 60_000; // 15 min
+// Blocage : 5 échecs depuis une IP bloquent cette IP ; 20 au total bloquent le compte.
+export const MAX_ECHECS_PAR_IP = 5;
+export const MAX_ECHECS_TOTAL = 20;
+const FENETRE_ECHECS_MS = 15 * 60_000;
+const DUREE_BLOCAGE_MS = 15 * 60_000; // à partir du seuil atteint
 
-/** Délai minimum entre deux liens de vérification envoyés au même courriel. */
-const DELAI_RENVOI_MS = 60_000; // 1 min
+const DELAI_RENVOI_MS = 60_000; // un lien par minute et par courriel
 
-/**
- * Haché d'un jeton envoyé par courriel. SHA-256 suffit ici : le jeton est long
- * et tiré au hasard, donc impossible à deviner (contrairement à un mot de passe).
- */
-export const hacherJeton = (jeton: string) =>
-  createHash('sha256').update(jeton).digest('hex');
+// Échecs d'un courriel : un hash Redis (compteurs par IP, total, blocages), chaque champ avec sa durée.
+export const cleEchecs = (courriel: string) => `connexion:echecs:${courriel}`;
+export const CHAMP_TOTAL = 'total';
+export const champBlocage = (qui: string) => `bloque:${qui}`;
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  // Haché d'un mot de passe au hasard, comparé quand le courriel n'existe pas (voir connecter()).
+  // Comparé quand le courriel n'existe pas : même durée de réponse.
   private readonly hacheFactice = hash(
     randomBytes(16).toString('hex'),
     OPTIONS_ARGON2,
@@ -71,19 +79,22 @@ export class AuthService {
     private readonly courriels: CourrielsService,
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
+    private readonly jetons: JetonsService,
   ) {}
 
-  /**
-   * Vérifie les identifiants, ouvre une session et renvoie les deux jetons.
-   * Une seule erreur pour « courriel inconnu » et « mauvais mot de passe » : on ne révèle pas qui est inscrit.
-   */
+  /** Vérifie les identifiants et ouvre une session. Même erreur si le courriel est inconnu. */
   async connecter(
     dto: ConnexionDto,
     appareil: { navigateur?: string; adresseIp?: string },
   ) {
-    // Compté par courriel, qu'il soit inscrit ou non : le blocage ne révèle pas qui utilise Relnis.
-    const cleEchecs = `connexion:echecs:${dto.courriel}`;
-    if (Number(await this.redis.get(cleEchecs)) >= MAX_ECHECS_CONNEXION) {
+    const echecs = cleEchecs(dto.courriel);
+    const ip = appareil.adresseIp ?? 'inconnue';
+    const [blocageIp, blocageTotal] = await this.redis.hmget(
+      echecs,
+      champBlocage(ip),
+      champBlocage(CHAMP_TOTAL),
+    );
+    if (blocageIp || blocageTotal) {
       throw new ErreurApi(
         HttpStatus.TOO_MANY_REQUESTS,
         'COMPTE_BLOQUE_TEMPORAIREMENT',
@@ -95,26 +106,17 @@ export class AuthService {
       where: { courriel: dto.courriel },
     });
 
-    // Toujours un calcul Argon2, même sans compte : le temps de réponse ne trahit rien.
+    // Argon2 même sans compte : le temps de réponse ne trahit rien.
     const motDePasseValide = await verify(
       utilisateur?.motDePasseHache ?? (await this.hacheFactice),
       dto.motDePasse,
     );
 
     if (!utilisateur || !motDePasseValide || !utilisateur.actif) {
-      // +1 échec ; le compteur s'efface tout seul 15 min après le premier échec.
-      await this.redis
-        .multi()
-        .incr(cleEchecs)
-        .pexpire(cleEchecs, DUREE_BLOCAGE_MS, 'NX')
-        .exec();
-      throw new ErreurApi(
-        HttpStatus.UNAUTHORIZED,
-        'IDENTIFIANTS_INVALIDES',
-        'Courriel ou mot de passe incorrect',
-      );
+      await this.compterEchec(echecs, ip);
+      throw identifiantsInvalides();
     }
-    // Vérifié seulement avec le bon mot de passe : sinon, ce message révélerait que le compte existe.
+    // Seulement avec le bon mot de passe, sinon ce message révélerait le compte.
     if (!utilisateur.courrielVerifie) {
       throw new ErreurApi(
         HttpStatus.FORBIDDEN,
@@ -123,14 +125,23 @@ export class AuthService {
       );
     }
 
-    // Connexion réussie : les échecs précédents sont oubliés.
-    await this.redis.del(cleEchecs);
+    await this.redis.del(echecs); // réussite : échecs oubliés
 
     const jetonRenouvellement = randomBytes(32).toString('base64url');
     const maintenant = Date.now();
+    const session = await this.prisma.$transaction(async (tx) => {
+      // Verrouille l'utilisateur ; échoue si le mot de passe a changé (ou le compte désactivé) entre-temps.
+      const { count } = await tx.utilisateur.updateMany({
+        where: {
+          id: utilisateur.id,
+          motDePasseHache: utilisateur.motDePasseHache,
+          actif: true,
+        },
+        data: { derniereConnexion: new Date(maintenant) },
+      });
+      if (count === 0) throw identifiantsInvalides();
 
-    const [session] = await this.prisma.$transaction([
-      this.prisma.session.create({
+      return tx.session.create({
         data: {
           utilisateurId: utilisateur.id,
           jetonRenouvellementHache: hacherJeton(jetonRenouvellement),
@@ -139,12 +150,8 @@ export class AuthService {
           expireLe: new Date(maintenant + DUREE_INACTIVITE_MS),
           expireAbsoluLe: new Date(maintenant + DUREE_ABSOLUE_MS),
         },
-      }),
-      this.prisma.utilisateur.update({
-        where: { id: utilisateur.id },
-        data: { derniereConnexion: new Date(maintenant) },
-      }),
-    ]);
+      });
+    });
 
     return {
       jetonAcces: await this.signerAcces(utilisateur, session.id),
@@ -159,11 +166,7 @@ export class AuthService {
     };
   }
 
-  /**
-   * Échange le jeton de renouvellement contre un nouveau jeton d'accès, et remplace
-   * le jeton de renouvellement (rotation). C'est ici que tout est revérifié en base :
-   * session fermée ou expirée, compte désactivé.
-   */
+  /** Nouveau jeton d'accès + rotation du jeton de renouvellement, après vérification en base. */
   async renouveler(jeton: string | undefined) {
     if (!jeton) throw sessionInvalide();
     const hache = hacherJeton(jeton);
@@ -177,12 +180,13 @@ export class AuthService {
     });
     if (!session || session.fermeeLe) throw sessionInvalide();
 
-    // Un ancien jeton présenté : deux onglets en même temps (délai de grâce), ou un vol.
+    // Ancien jeton : deux onglets (délai de grâce) ou un vol.
     const ancienJeton = session.jetonRenouvellementHache !== hache;
     if (ancienJeton) {
       const depuisRotation = maintenant - (session.renouveleeLe?.getTime() ?? 0);
       if (depuisRotation > DELAI_GRACE_RENOUVELLEMENT_MS) {
-        // Le voleur et la vraie personne sont coupés tous les deux : la personne se reconnecte.
+        // Vol probable : on coupe tout le monde, la vraie personne se reconnectera.
+        await this.revoquerSessions([session.id]);
         await this.prisma.session.update({
           where: { id: session.id },
           data: {
@@ -203,13 +207,13 @@ export class AuthService {
       throw sessionInvalide();
     }
 
-    // Délai de grâce : nouvel accès, mais pas de nouvelle rotation (l'autre onglet l'a déjà faite).
+    // Délai de grâce : l'autre onglet a déjà fait la rotation.
     if (ancienJeton) {
       return { jetonAcces: await this.signerAcces(session.utilisateur, session.id) };
     }
 
     const nouveauJeton = randomBytes(32).toString('base64url');
-    // La condition sur le jeton actuel évite deux rotations simultanées de la même session.
+    // Condition sur le jeton actuel : une seule rotation si deux requêtes arrivent ensemble.
     const { count } = await this.prisma.session.updateMany({
       where: { id: session.id, jetonRenouvellementHache: hache },
       data: {
@@ -217,7 +221,7 @@ export class AuthService {
         jetonPrecedentHache: hache,
         renouveleeLe: new Date(maintenant),
         derniereActiviteLe: new Date(maintenant),
-        // 7 jours de plus, sans jamais dépasser la limite absolue de 30 jours.
+        // +7 jours, jamais au-delà de la limite de 30 jours.
         expireLe: new Date(
           Math.min(maintenant + DUREE_INACTIVITE_MS, session.expireAbsoluLe.getTime()),
         ),
@@ -227,26 +231,69 @@ export class AuthService {
       return { jetonAcces: await this.signerAcces(session.utilisateur, session.id) };
     }
 
+    // Rôle relu en base : un changement de rôle s'applique au prochain renouvellement.
     return {
-      // Rôle relu en base : un changement de rôle s'applique au plus tard au prochain renouvellement.
       jetonAcces: await this.signerAcces(session.utilisateur, session.id),
       jetonRenouvellement: nouveauJeton,
     };
   }
 
-  /** Ferme la session liée au jeton de renouvellement, s'il y en a une. */
+  /** Ferme la session du jeton actuel ou précédent (cas des deux onglets). */
   async deconnecter(jeton: string | undefined) {
     if (!jeton) return;
-    await this.prisma.session.updateMany({
-      where: { jetonRenouvellementHache: hacherJeton(jeton), fermeeLe: null },
-      data: {
-        fermeeLe: new Date(),
-        motifFermeture: MotifFermeture.DECONNEXION,
+    const hache = hacherJeton(jeton);
+    const session = await this.prisma.session.findFirst({
+      where: {
+        OR: [{ jetonRenouvellementHache: hache }, { jetonPrecedentHache: hache }],
+        fermeeLe: null,
       },
+    });
+    if (!session) return;
+
+    await this.revoquerSessions([session.id]);
+    await this.prisma.session.update({
+      where: { id: session.id },
+      data: { fermeeLe: new Date(), motifFermeture: MotifFermeture.DECONNEXION },
     });
   }
 
-  /** Signe un jeton d'accès de 15 min avec l'identité, l'entreprise et le rôle. */
+  /** Révoque dans Redis (refus immédiat par le garde). Toujours AVANT de fermer en base. */
+  private async revoquerSessions(sessionIds: string[]) {
+    if (sessionIds.length === 0) return;
+    const lot = this.redis.multi();
+    for (const id of sessionIds) {
+      lot.set(cleSessionRevoquee(id), '1', 'PX', DUREE_ACCES_SECONDES * 1000);
+    }
+    await executerLot(lot);
+  }
+
+  /**
+   * +1 échec (IP et total), compté 15 min. Au seuil, un blocage de 15 min à partir de maintenant.
+   * Chaque champ a sa propre durée (HPEXPIRE) : un blocage ne prolonge pas les autres compteurs.
+   */
+  private async compterEchec(echecs: string, ip: string) {
+    const [parIp, , total] = await executerLot(
+      this.redis
+        .multi()
+        .hincrby(echecs, ip, 1)
+        .hpexpire(echecs, FENETRE_ECHECS_MS, 'NX', 'FIELDS', 1, ip)
+        .hincrby(echecs, CHAMP_TOTAL, 1)
+        .hpexpire(echecs, FENETRE_ECHECS_MS, 'NX', 'FIELDS', 1, CHAMP_TOTAL),
+    );
+
+    const blocages: string[] = [];
+    if (Number(parIp) >= MAX_ECHECS_PAR_IP) blocages.push(champBlocage(ip));
+    if (Number(total) >= MAX_ECHECS_TOTAL) blocages.push(champBlocage(CHAMP_TOTAL));
+    if (blocages.length === 0) return;
+
+    const lot = this.redis.multi();
+    for (const champ of blocages) {
+      lot.hset(echecs, champ, '1').hpexpire(echecs, DUREE_BLOCAGE_MS, 'FIELDS', 1, champ);
+    }
+    await executerLot(lot);
+  }
+
+  /** Jeton d'accès de 15 min : identité, entreprise, rôle, session. */
   private signerAcces(
     utilisateur: { id: string; entrepriseId: string; role: Role },
     sessionId: string,
@@ -260,7 +307,7 @@ export class AuthService {
     return this.jwt.signAsync(charge);
   }
 
-  /** Le profil de la personne connectée, relu en base (toujours à jour). */
+  /** Profil de la personne connectée, relu en base. */
   async moi(utilisateurId: string) {
     return this.prisma.utilisateur.findUniqueOrThrow({
       where: { id: utilisateurId },
@@ -277,9 +324,8 @@ export class AuthService {
     });
   }
 
-  /** Crée l'entreprise et son premier administrateur, ensemble ou pas du tout. */
+  /** Crée l'entreprise et son administrateur, ensemble ou pas du tout. */
   async inscrire(dto: InscriptionDto) {
-    // Argon2id : le mot de passe n'est jamais enregistré en clair.
     const motDePasseHache = await hash(dto.motDePasse, OPTIONS_ARGON2);
 
     let utilisateur;
@@ -300,7 +346,7 @@ export class AuthService {
         });
       });
     } catch (erreur) {
-      // P2002 : valeur déjà prise sur une colonne unique (ici, le courriel).
+      // P2002 : courriel déjà pris (colonne unique).
       if (
         erreur instanceof Prisma.PrismaClientKnownRequestError &&
         erreur.code === 'P2002'
@@ -314,7 +360,7 @@ export class AuthService {
       throw erreur;
     }
 
-    // Après la transaction : un courriel ne s'annule pas, on l'envoie une fois le compte créé.
+    // Après la transaction : un courriel ne s'annule pas.
     await this.envoyerLienVerification(utilisateur);
 
     return {
@@ -323,107 +369,159 @@ export class AuthService {
     };
   }
 
-  /** Confirme le courriel si le jeton existe, n'a pas servi et n'a pas expiré. */
+  /** Confirme le courriel avec le jeton du lien. */
   async verifierCourriel(jeton: string) {
-    const trouve = await this.prisma.jeton.findUnique({
-      where: { jetonHache: hacherJeton(jeton) },
-    });
-
-    if (
-      !trouve ||
-      trouve.type !== TypeJeton.VERIFICATION_COURRIEL ||
-      trouve.utiliseLe
-    ) {
-      throw new ErreurApi(
-        HttpStatus.BAD_REQUEST,
-        'JETON_INVALIDE',
-        'Lien invalide ou déjà utilisé',
-      );
-    }
-    if (trouve.expireLe < new Date()) {
-      throw new ErreurApi(HttpStatus.BAD_REQUEST, 'JETON_EXPIRE', 'Lien expiré');
-    }
-
-    await this.prisma.$transaction(async (tx) => {
-      // « Pas encore utilisé » dans la condition : deux clics simultanés ne valident qu'une fois.
-      const { count } = await tx.jeton.updateMany({
-        where: { id: trouve.id, utiliseLe: null },
-        data: { utiliseLe: new Date() },
-      });
-      if (count === 0) {
-        throw new ErreurApi(
-          HttpStatus.BAD_REQUEST,
-          'JETON_INVALIDE',
-          'Lien invalide ou déjà utilisé',
-        );
-      }
-      await tx.utilisateur.update({
-        where: { id: trouve.utilisateurId },
-        data: { courrielVerifie: true },
-      });
-    });
-
+    await this.jetons.utiliser(
+      jeton,
+      TypeJeton.VERIFICATION_COURRIEL,
+      (tx, utilisateurId) =>
+        tx.utilisateur.update({
+          where: { id: utilisateurId },
+          data: { courrielVerifie: true },
+        }),
+    );
     return { courrielVerifie: true };
   }
 
-  /**
-   * Envoie un nouveau lien si le compte existe et n'est pas encore vérifié.
-   * Ne dit jamais si le courriel est inscrit : on ne révèle pas qui utilise Relnis.
-   */
+  /** Nouveau lien de vérification, si le compte existe et n'est pas vérifié. */
   async renvoyerVerification(courriel: string) {
-    // Au plus un lien par minute pour un même courriel, même depuis plusieurs adresses IP.
-    // SET … NX : ne pose la clé que si elle n'existe pas déjà, en une seule opération.
-    const premier = await this.redis.set(
-      `verification:renvoi:${courriel}`,
+    if (!(await this.premierEnvoiDeLaMinute('verification', courriel))) return;
+
+    this.enArrierePlan('renvoi du lien de vérification', async () => {
+      const utilisateur = await this.prisma.utilisateur.findUnique({
+        where: { courriel },
+      });
+      if (utilisateur?.actif && !utilisateur.courrielVerifie) {
+        await this.envoyerLienVerification(utilisateur);
+      }
+    });
+  }
+
+  /** « Mot de passe oublié » : lien si le compte existe et est actif. */
+  async demanderReinitialisation(courriel: string) {
+    if (!(await this.premierEnvoiDeLaMinute('mot-de-passe', courriel))) return;
+
+    this.enArrierePlan('lien de réinitialisation', async () => {
+      const utilisateur = await this.prisma.utilisateur.findUnique({
+        where: { courriel },
+      });
+      if (utilisateur?.actif) {
+        await this.envoyerLienReinitialisation(utilisateur);
+      }
+    });
+  }
+
+  /**
+   * Travail lancé sans l'attendre : la durée de réponse ne trahit pas les comptes.
+   * Perdu si l'API redémarre entre-temps ; BullMQ (phase 3) le rendra durable.
+   */
+  private enArrierePlan(description: string, travail: () => Promise<void>) {
+    travail().catch((erreur: unknown) => {
+      this.logger.error(`Échec en arrière-plan : ${description}`, erreur);
+    });
+  }
+
+  /** Change le mot de passe avec le jeton du lien, puis ferme toutes les sessions. */
+  async reinitialiserMotDePasse(jeton: string, motDePasse: string) {
+    // Jeton vérifié avant Argon2 : un jeton inventé ne coûte rien au serveur.
+    await this.jetons.verifier(jeton, TypeJeton.MOT_DE_PASSE);
+
+    const motDePasseHache = await hash(motDePasse, OPTIONS_ARGON2);
+    const maintenant = new Date();
+
+    const utilisateur = await this.jetons.utiliser(
+      jeton,
+      TypeJeton.MOT_DE_PASSE,
+      async (tx, utilisateurId) => {
+        const modifie = await tx.utilisateur.update({
+          where: { id: utilisateurId },
+          data: { motDePasseHache, courrielVerifie: true }, // le lien prouve l'adresse
+        });
+        if (!modifie.actif) {
+          // Annule la transaction : un compte désactivé ne se réactive pas ainsi.
+          throw new ErreurApi(
+            HttpStatus.BAD_REQUEST,
+            'JETON_INVALIDE',
+            'Lien invalide ou déjà utilisé',
+          );
+        }
+        const ouvertes = await tx.session.findMany({
+          where: { utilisateurId, fermeeLe: null },
+          select: { id: true },
+        });
+        const ids = ouvertes.map((s) => s.id);
+        // Redis d'abord : s'il échoue, la transaction est annulée.
+        await this.revoquerSessions(ids);
+        await tx.session.updateMany({
+          where: { id: { in: ids } },
+          data: {
+            fermeeLe: maintenant,
+            motifFermeture: MotifFermeture.MOT_DE_PASSE_CHANGE,
+          },
+        });
+        return modifie;
+      },
+    );
+
+    await this.redis.del(cleEchecs(utilisateur.courriel)); // échecs d'avant oubliés
+    return { motDePasseModifie: true };
+  }
+
+  /** Un courriel par minute et par usage pour une adresse (SET NX, en une opération). */
+  private async premierEnvoiDeLaMinute(usage: string, courriel: string) {
+    const pose = await this.redis.set(
+      `courriel:${usage}:${courriel}`,
       '1',
       'PX',
       DELAI_RENVOI_MS,
       'NX',
     );
-    if (!premier) return;
-
-    const utilisateur = await this.prisma.utilisateur.findUnique({
-      where: { courriel },
-    });
-    if (!utilisateur || !utilisateur.actif || utilisateur.courrielVerifie) {
-      return;
-    }
-
-    // Les anciens liens ne fonctionnent plus : seul le dernier envoyé compte.
-    await this.prisma.jeton.updateMany({
-      where: {
-        utilisateurId: utilisateur.id,
-        type: TypeJeton.VERIFICATION_COURRIEL,
-        utiliseLe: null,
-      },
-      data: { expireLe: new Date() },
-    });
-    await this.envoyerLienVerification(utilisateur);
+    return pose === 'OK';
   }
 
-  /** Crée un jeton (seul son haché est gardé) et l'envoie par courriel. */
+  /** Crée un jeton « mot de passe » et l'envoie. Ne lance jamais d'erreur (journalisée). */
+  private async envoyerLienReinitialisation(utilisateur: {
+    id: string;
+    courriel: string;
+    prenom: string;
+  }) {
+    try {
+      const jeton = await this.jetons.creer(
+        utilisateur.id,
+        TypeJeton.MOT_DE_PASSE,
+        DUREE_REINITIALISATION_MINUTES * 60_000,
+      );
+      await this.courriels.envoyerReinitialisation(
+        utilisateur,
+        jeton,
+        DUREE_REINITIALISATION_MINUTES,
+      );
+    } catch (erreur) {
+      this.logger.error(
+        `Lien de réinitialisation non envoyé (utilisateur ${utilisateur.id})`,
+        erreur,
+      );
+    }
+  }
+
+  /** Crée un jeton de vérification et l'envoie. Ne lance jamais d'erreur (journalisée). */
   private async envoyerLienVerification(utilisateur: {
     id: string;
     courriel: string;
     prenom: string;
   }) {
     try {
-      const jeton = randomBytes(32).toString('base64url');
-      await this.prisma.jeton.create({
-        data: {
-          utilisateurId: utilisateur.id,
-          type: TypeJeton.VERIFICATION_COURRIEL,
-          jetonHache: hacherJeton(jeton),
-          expireLe: new Date(Date.now() + DUREE_VERIFICATION_HEURES * 3_600_000),
-        },
-      });
+      const jeton = await this.jetons.creer(
+        utilisateur.id,
+        TypeJeton.VERIFICATION_COURRIEL,
+        DUREE_VERIFICATION_HEURES * 3_600_000,
+      );
       await this.courriels.envoyerVerification(
         utilisateur,
         jeton,
         DUREE_VERIFICATION_HEURES,
       );
     } catch (erreur) {
-      // Le compte existe quand même : la personne pourra demander un nouveau lien.
       this.logger.error(
         `Lien de vérification non envoyé (utilisateur ${utilisateur.id})`,
         erreur,

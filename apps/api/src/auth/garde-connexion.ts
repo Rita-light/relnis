@@ -10,8 +10,10 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import { ErreurApi } from '../commun/erreur-api.js';
+import { RedisService } from '../redis/redis.service.js';
 import {
   ChargeJetonAcces,
+  cleSessionRevoquee,
   COOKIE_ACCES,
   UtilisateurConnecte,
 } from './session.js';
@@ -27,15 +29,13 @@ export const UtilisateurCourant = createParamDecorator(
     contexte.switchToHttp().getRequest<Request>().utilisateur!,
 );
 
-/**
- * Garde global : vérifie le jeton d'accès (cookie) sur chaque requête, sauf @Publique().
- * Sécurité par défaut : une nouvelle route oubliée est protégée, pas ouverte.
- */
+/** Garde global : toute route exige le jeton d'accès, sauf @Publique() (sécurité par défaut). */
 @Injectable()
 export class GardeConnexion implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly jwt: JwtService,
+    private readonly redis: RedisService,
   ) {}
 
   async canActivate(contexte: ExecutionContext) {
@@ -49,19 +49,34 @@ export class GardeConnexion implements CanActivate {
     const jeton: unknown = requete.cookies?.[COOKIE_ACCES];
     if (typeof jeton !== 'string') throw nonAuthentifie();
 
+    let charge: ChargeJetonAcces;
     try {
-      // Vérifie la signature et l'expiration, sans lire la base : c'est ce qui rend le JWT rapide.
-      const charge = await this.jwt.verifyAsync<ChargeJetonAcces>(jeton);
-      requete.utilisateur = {
-        id: charge.sub,
-        entrepriseId: charge.ent,
-        role: charge.role,
-        sessionId: charge.sid,
-      };
-      return true;
+      charge = await this.jwt.verifyAsync<ChargeJetonAcces>(jeton); // signature + expiration
     } catch {
       throw nonAuthentifie();
     }
+
+    // Session fermée : refusée tout de suite (lecture Redis, sans la base).
+    let revoquee: number;
+    try {
+      revoquee = await this.redis.exists(cleSessionRevoquee(charge.sid));
+    } catch {
+      // Redis en panne : on refuse (503).
+      throw new ErreurApi(
+        HttpStatus.SERVICE_UNAVAILABLE,
+        'SERVICE_INDISPONIBLE',
+        'Service momentanément indisponible, réessayez',
+      );
+    }
+    if (revoquee) throw nonAuthentifie();
+
+    requete.utilisateur = {
+      id: charge.sub,
+      entrepriseId: charge.ent,
+      role: charge.role,
+      sessionId: charge.sid,
+    };
+    return true;
   }
 }
 

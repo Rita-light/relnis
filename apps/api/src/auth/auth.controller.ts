@@ -26,6 +26,8 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { ConnexionDto } from './dto/connexion.dto.js';
 import { InscriptionDto } from './dto/inscription.dto.js';
+import { MotDePasseOublieDto } from './dto/mot-de-passe-oublie.dto.js';
+import { NouveauMotDePasseDto } from './dto/nouveau-mot-de-passe.dto.js';
 import { RenvoyerVerificationDto } from './dto/renvoyer-verification.dto.js';
 import { VerifierCourrielDto } from './dto/verifier-courriel.dto.js';
 import { Publique, UtilisateurCourant } from './garde-connexion.js';
@@ -146,6 +148,35 @@ export class AuthController {
   ) {
     await this.auth.deconnecter(cookie(requete, COOKIE_RENOUVELLEMENT));
     effacerCookiesSession(reponse);
+  }
+
+  // 202 dans tous les cas : la réponse ne dit pas si le courriel est inscrit.
+  @Publique()
+  @Throttle({ default: { limit: 3, ttl: minutes(15) } }) // empêche d'inonder une boîte de courriels
+  @Post('mot-de-passe-oublie')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiAcceptedResponse({ description: 'Un lien est envoyé si un compte actif existe' })
+  async demanderReinitialisation(@Body() dto: MotDePasseOublieDto) {
+    await this.auth.demanderReinitialisation(dto.courriel);
+  }
+
+  @Publique()
+  @Throttle({ default: { limit: 10, ttl: minutes(1) } }) // empêche d'essayer des jetons en rafale
+  @Post('nouveau-mot-de-passe')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'Mot de passe changé, toutes les sessions fermées : se reconnecter' })
+  @ApiBadRequestResponse({ description: 'JETON_INVALIDE, JETON_EXPIRE ou DONNEES_INVALIDES' })
+  async reinitialiserMotDePasse(
+    @Body() dto: NouveauMotDePasseDto,
+    @Res({ passthrough: true }) reponse: Response,
+  ) {
+    const resultat = await this.auth.reinitialiserMotDePasse(
+      dto.jeton,
+      dto.motDePasse,
+    );
+    // Les sessions sont fermées : on efface aussi les cookies de ce navigateur.
+    effacerCookiesSession(reponse);
+    return resultat;
   }
 
   // Route protégée (pas de @Publique) : le garde exige le cookie d'accès.

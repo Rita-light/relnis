@@ -1,4 +1,4 @@
-import { hacherJeton } from './auth.service.js';
+import { hacherJeton } from './hacher-jeton.js';
 
 describe('hacherJeton', () => {
   it('donne toujours le même haché pour le même jeton (on peut le retrouver en base)', () => {

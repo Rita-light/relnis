@@ -1,0 +1,9 @@
+Bonjour {{ prenom }},
+
+Nous avons reçu une demande pour réinitialiser le mot de passe de votre compte Relnis. Pour choisir un nouveau mot de passe, ouvrez ce lien :
+
+{{ lien }}
+
+Ce lien est valable {{ dureeMinutes }} minutes et ne fonctionne qu'une fois. Pour votre sécurité, toutes vos connexions ouvertes seront fermées.
+
+Vous n'avez rien demandé ? Ignorez ce message : votre mot de passe reste inchangé.

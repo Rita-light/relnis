@@ -32,4 +32,21 @@ export class CourrielsService {
       attachments: [LOGO],
     });
   }
+
+  /** Lien pour choisir un nouveau mot de passe. */
+  async envoyerReinitialisation(
+    destinataire: { courriel: string; prenom: string },
+    jeton: string,
+    dureeMinutes: number,
+  ) {
+    const lien = `${this.config.getOrThrow<string>('URL_WEB')}/nouveau-mot-de-passe?jeton=${jeton}`;
+
+    await this.mailer.send({
+      to: destinataire.courriel,
+      subject: 'Réinitialiser votre mot de passe',
+      template: 'reinitialisation-mot-de-passe',
+      context: { prenom: destinataire.prenom, lien, dureeMinutes },
+      attachments: [LOGO],
+    });
+  }
 }

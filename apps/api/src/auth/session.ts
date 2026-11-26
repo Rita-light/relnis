@@ -6,14 +6,15 @@ export const DUREE_ACCES_SECONDES = 15 * 60; // jeton d'accès : 15 min
 export const DUREE_INACTIVITE_MS = 7 * 24 * 3_600_000; // session : 7 jours sans activité
 export const DUREE_ABSOLUE_MS = 30 * 24 * 3_600_000; // session : 30 jours au maximum
 
-/**
- * Deux onglets qui renouvellent en même temps envoient le même jeton : le second
- * arrive après la rotation. Pendant ce court délai, ce n'est pas un vol.
- */
+// Deux onglets qui renouvellent ensemble : l'ancien jeton reste accepté 10 s (pas un vol).
 export const DELAI_GRACE_RENOUVELLEMENT_MS = 10_000;
 
 export const COOKIE_ACCES = 'relnis_acces';
 export const COOKIE_RENOUVELLEMENT = 'relnis_renouvellement';
+
+// Session fermée : clé Redis gardée 15 min, la durée de vie d'un jeton d'accès.
+export const cleSessionRevoquee = (sessionId: string) =>
+  `session:revoquee:${sessionId}`;
 
 /** Ce que contient le jeton d'accès (JWT signé par l'API). */
 export interface ChargeJetonAcces {

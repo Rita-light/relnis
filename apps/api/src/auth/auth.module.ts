@@ -6,9 +6,10 @@ import { CourrielsModule } from '../courriels/courriels.module.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { GardeConnexion } from './garde-connexion.js';
+import { JetonsService } from './jetons.service.js';
 import { DUREE_ACCES_SECONDES } from './session.js';
 
-/** Authentification : inscription, vérification du courriel, connexion et sessions. */
+/** Authentification : inscription, courriel, connexion, sessions, mot de passe oublié. */
 @Module({
   imports: [
     CourrielsModule,
@@ -24,6 +25,7 @@ import { DUREE_ACCES_SECONDES } from './session.js';
   controllers: [AuthController],
   providers: [
     AuthService,
+    JetonsService,
     // Garde appliqué à TOUTES les routes de l'API ; @Publique() l'enlève.
     { provide: APP_GUARD, useClass: GardeConnexion },
   ],

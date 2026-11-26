@@ -72,6 +72,7 @@ model Utilisateur {
 
 enum TypeJeton {
   VERIFICATION_COURRIEL
+  MOT_DE_PASSE
 
   @@map("type_jeton")
 }
@@ -96,6 +97,8 @@ enum MotifFermeture {
   DECONNEXION
   /// Un ancien jeton de renouvellement a resservi : probablement volé.
   REUTILISATION_DETECTEE
+  /// Mot de passe réinitialisé : toutes les sessions sont fermées.
+  MOT_DE_PASSE_CHANGE
 
   @@map("motif_fermeture")
 }
