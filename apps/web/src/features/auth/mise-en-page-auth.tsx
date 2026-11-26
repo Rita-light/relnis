@@ -2,7 +2,7 @@ import { BellRing, CircleCheck, MapPin, TriangleAlert } from 'lucide-react'
 import { cn } from 'cn'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet } from 'react-router'
-import { SelecteurLangue } from './selecteur-langue'
+import { SelecteurLangue } from '@/shared/components/selecteur-langue'
 
 // Effet vitre ; opaque si le système demande moins de transparence.
 const VITRE =

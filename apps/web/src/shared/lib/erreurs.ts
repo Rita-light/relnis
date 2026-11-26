@@ -18,9 +18,17 @@ const CODES_CONNUS = [
 
 export type CodeErreur = (typeof CODES_CONNUS)[number]
 
-/** La clé de traduction d'une erreur ; un code inconnu devient « erreur interne ». */
-export function cleErreur(erreur: unknown): `erreurs.${CodeErreur}` {
-  const code = erreur instanceof ErreurApi ? erreur.code : 'ERREUR_INTERNE'
+/** La clé de traduction d'un code ; un code inconnu devient « erreur interne ». */
+export function cleCode(code: string): `erreurs.${CodeErreur}` {
   const connu = (CODES_CONNUS as readonly string[]).includes(code)
   return `erreurs.${connu ? (code as CodeErreur) : 'ERREUR_INTERNE'}`
 }
+
+/** La clé de traduction d'une erreur quelconque. */
+export function cleErreur(erreur: unknown): `erreurs.${CodeErreur}` {
+  return cleCode(erreur instanceof ErreurApi ? erreur.code : 'ERREUR_INTERNE')
+}
+
+/** Vrai si l'erreur vient de l'API avec ce code. */
+export const aLeCode = (erreur: unknown, code: CodeErreur) =>
+  erreur instanceof ErreurApi && erreur.code === code

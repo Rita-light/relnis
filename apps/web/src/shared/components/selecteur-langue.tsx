@@ -1,7 +1,7 @@
 import { ChevronDown, Languages } from 'lucide-react'
 import { cn } from 'cn'
 import { useTranslation } from 'react-i18next'
-import { buttonVariants } from '@/components/ui/button'
+import { buttonVariants } from '@/shared/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +10,8 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { LANGUES } from '@/langues'
+} from '@/shared/ui/dropdown-menu'
+import { LANGUES } from '@/i18n/langues'
 
 /** Menu des langues (le choix est gardé dans le navigateur). */
 export function SelecteurLangue({ className }: { className?: string }) {

@@ -1,18 +1,24 @@
 {
   "commun": {
     "langue": "Language",
-    "chargement": "Loading…"
+    "chargement": "Loading…",
+    "nouvelOnglet": "(opens in a new tab)"
   },
   "champs": {
     "courriel": "Email",
-    "motDePasse": "Password"
+    "motDePasse": "Password",
+    "nomEntreprise": "Company name",
+    "prenom": "First name",
+    "nom": "Last name",
+    "afficherMotDePasse": "Show password"
   },
   "validation": {
     "requis": "This field is required.",
     "courrielInvalide": "Enter a valid email address (e.g. name@company.ca).",
     "tropCourt": "At least {{min}} characters.",
     "tropLong": "This text is too long.",
-    "invalide": "This value is not valid."
+    "invalide": "This value is not valid.",
+    "accepter": "You must accept to create your account."
   },
   "erreurs": {
     "IDENTIFIANTS_INVALIDES": "Incorrect email or password.",
@@ -50,7 +56,35 @@
     "oublie": "Forgot your password?",
     "seConnecter": "Sign in",
     "pasDeCompte": "Don't have an account yet?",
-    "creerEntreprise": "Create your company"
+    "creerEntreprise": "Create your company",
+    "nouveauLien": "Get a new confirmation link"
+  },
+  "inscription": {
+    "titre": "Create your company",
+    "sousTitre": "Your account will have full administrator rights.",
+    "aideMotDePasse": "At least {{min}} characters. A short sentence that is easy to remember works well.",
+    "accepte": "I accept the <conditions>terms of use</conditions> and the <confidentialite>privacy policy</confidentialite>.",
+    "creer": "Create my account",
+    "dejaCompte": "Already have an account?",
+    "seConnecter": "Sign in"
+  },
+  "courrielEnvoye": {
+    "titre": "Check your email",
+    "envoyeA": "We sent a confirmation link to <strong>{{courriel}}</strong>. It is valid for 24 hours.",
+    "envoye": "Open the confirmation link we sent you. It is valid for 24 hours.",
+    "rienRecu": "Nothing received? Check your spam folder, or request a new link.",
+    "renvoyer": "Resend the link",
+    "renvoye": "If this account is awaiting confirmation, a new link has just been sent.",
+    "retourConnexion": "Back to sign in"
+  },
+  "verifierCourriel": {
+    "titreEnCours": "Email confirmation",
+    "enCours": "Confirming your email…",
+    "titreReussi": "Email confirmed",
+    "reussi": "Your account is ready. You can now sign in.",
+    "seConnecter": "Sign in",
+    "titreEchec": "Unable to confirm",
+    "nouveauLien": "Get a new link"
   },
   "accueil": {
     "titre": "Home",

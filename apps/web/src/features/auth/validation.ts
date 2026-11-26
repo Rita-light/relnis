@@ -4,6 +4,13 @@ export const MOT_DE_PASSE_MIN = 12
 export const MOT_DE_PASSE_MAX = 128
 export const FORMAT_COURRIEL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+/** Texte obligatoire, sans espaces autour (comme l'API). */
+export const reglesTexte = (max: number) => ({
+  required: true,
+  maxLength: max,
+  setValueAs: (valeur: string) => valeur.trim(),
+})
+
 export const reglesCourriel = {
   required: true,
   maxLength: COURRIEL_MAX,

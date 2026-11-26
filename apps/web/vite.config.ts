@@ -7,7 +7,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
-    // « @/ » désigne le dossier src : import { Button } from '@/components/ui/button'
+    // « @/ » désigne le dossier src : import { Button } from '@/shared/ui/button'
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
     },

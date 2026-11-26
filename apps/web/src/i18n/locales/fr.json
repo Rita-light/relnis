@@ -1,18 +1,24 @@
 {
   "commun": {
     "langue": "Langue",
-    "chargement": "Chargement…"
+    "chargement": "Chargement…",
+    "nouvelOnglet": "(s'ouvre dans un nouvel onglet)"
   },
   "champs": {
     "courriel": "Courriel",
-    "motDePasse": "Mot de passe"
+    "motDePasse": "Mot de passe",
+    "nomEntreprise": "Nom de l'entreprise",
+    "prenom": "Prénom",
+    "nom": "Nom",
+    "afficherMotDePasse": "Afficher le mot de passe"
   },
   "validation": {
     "requis": "Ce champ est obligatoire.",
     "courrielInvalide": "Entrez une adresse courriel valide (ex. nom@entreprise.ca).",
     "tropCourt": "Au moins {{min}} caractères.",
     "tropLong": "Ce texte est trop long.",
-    "invalide": "Cette valeur n'est pas valide."
+    "invalide": "Cette valeur n'est pas valide.",
+    "accepter": "Vous devez accepter pour créer votre compte."
   },
   "erreurs": {
     "IDENTIFIANTS_INVALIDES": "Courriel ou mot de passe incorrect.",
@@ -50,7 +56,35 @@
     "oublie": "Mot de passe oublié ?",
     "seConnecter": "Se connecter",
     "pasDeCompte": "Pas encore de compte ?",
-    "creerEntreprise": "Créer votre entreprise"
+    "creerEntreprise": "Créer votre entreprise",
+    "nouveauLien": "Recevoir un nouveau lien de confirmation"
+  },
+  "inscription": {
+    "titre": "Créer votre entreprise",
+    "sousTitre": "Votre compte aura tous les droits d'administration.",
+    "aideMotDePasse": "Au moins {{min}} caractères. Une courte phrase facile à retenir fonctionne bien.",
+    "accepte": "J'accepte les <conditions>conditions d'utilisation</conditions> et la <confidentialite>politique de confidentialité</confidentialite>.",
+    "creer": "Créer mon compte",
+    "dejaCompte": "Déjà un compte ?",
+    "seConnecter": "Se connecter"
+  },
+  "courrielEnvoye": {
+    "titre": "Vérifiez votre courriel",
+    "envoyeA": "Nous avons envoyé un lien de confirmation à <strong>{{courriel}}</strong>. Il est valide 24 heures.",
+    "envoye": "Ouvrez le lien de confirmation que nous vous avons envoyé. Il est valide 24 heures.",
+    "rienRecu": "Rien reçu ? Regardez dans les courriels indésirables, ou demandez un nouveau lien.",
+    "renvoyer": "Renvoyer le lien",
+    "renvoye": "Si ce compte attend une confirmation, un nouveau lien vient d'être envoyé.",
+    "retourConnexion": "Retour à la connexion"
+  },
+  "verifierCourriel": {
+    "titreEnCours": "Confirmation du courriel",
+    "enCours": "Confirmation de votre courriel…",
+    "titreReussi": "Courriel confirmé",
+    "reussi": "Votre compte est prêt. Vous pouvez maintenant vous connecter.",
+    "seConnecter": "Se connecter",
+    "titreEchec": "Confirmation impossible",
+    "nouveauLien": "Recevoir un nouveau lien"
   },
   "accueil": {
     "titre": "Accueil",

@@ -3,12 +3,14 @@ import { LoaderCircle } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { ErreurChamp, ErreurFormulaire } from '@/components/erreurs-formulaire'
-import { Button } from '@/components/ui/button'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { MOT_DE_PASSE_MAX, reglesCourriel } from '@/lib/validation'
-import { useSession } from '@/session/contexte-session'
+import { ErreurChamp, ErreurFormulaire } from '@/shared/components/erreurs-formulaire'
+import { InputMotDePasse } from '@/features/auth/input-mot-de-passe'
+import { Button } from '@/shared/ui/button'
+import { Field, FieldGroup, FieldLabel } from '@/shared/ui/field'
+import { Input } from '@/shared/ui/input'
+import { aLeCode } from '@/shared/lib/erreurs'
+import { MOT_DE_PASSE_MAX, reglesCourriel } from '@/features/auth/validation'
+import { useSession } from '@/app/session/contexte-session'
 
 interface Valeurs {
   courriel: string
@@ -22,6 +24,7 @@ export function Connexion() {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<Valeurs>()
 
@@ -46,6 +49,15 @@ export function Connexion() {
       <form noValidate onSubmit={(e) => void soumettre(e)}>
         <FieldGroup>
           <ErreurFormulaire erreur={erreurApi} />
+          {aLeCode(erreurApi, 'COURRIEL_NON_VERIFIE') && (
+            <Link
+              to="/courriel-envoye"
+              state={{ courriel: getValues('courriel') }}
+              className="-mt-2 text-sm text-lien underline underline-offset-4"
+            >
+              {t('connexion.nouveauLien')}
+            </Link>
+          )}
 
           <Field data-invalid={!!errors.courriel}>
             <FieldLabel htmlFor="courriel">{t('champs.courriel')}</FieldLabel>
@@ -61,9 +73,8 @@ export function Connexion() {
 
           <Field data-invalid={!!errors.motDePasse}>
             <FieldLabel htmlFor="motDePasse">{t('champs.motDePasse')}</FieldLabel>
-            <Input
+            <InputMotDePasse
               id="motDePasse"
-              type="password"
               autoComplete="current-password"
               aria-invalid={!!errors.motDePasse}
               {...register('motDePasse', { required: true, maxLength: MOT_DE_PASSE_MAX })}

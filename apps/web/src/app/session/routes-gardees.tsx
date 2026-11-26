@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
-import { Chargement } from '@/components/chargement'
-import { ServiceIndisponible } from '@/components/service-indisponible'
+import { Chargement } from '@/app/chargement'
+import { ServiceIndisponible } from '@/app/service-indisponible'
 import { useSession } from './contexte-session'
 
 /** Pages réservées aux personnes connectées ; sinon, direction la connexion. */

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { appelerApi, ErreurApi } from '@/lib/api'
+import { appelerApi, ErreurApi } from '@/shared/lib/api'
 import { ContexteSession, type EtatSession, type Utilisateur } from './contexte-session'
 
 const lireProfil = () => appelerApi<Utilisateur>('/auth/moi')

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { LogOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ErreurFormulaire } from '@/components/erreurs-formulaire'
-import { SelecteurLangue } from '@/components/selecteur-langue'
-import { Button } from '@/components/ui/button'
-import { useSession } from '@/session/contexte-session'
+import { ErreurFormulaire } from '@/shared/components/erreurs-formulaire'
+import { SelecteurLangue } from '@/shared/components/selecteur-langue'
+import { Button } from '@/shared/ui/button'
+import { useSession } from '@/app/session/contexte-session'
 
 /** Accueil provisoire : le tableau de bord viendra en phase 1. */
 export function Accueil() {

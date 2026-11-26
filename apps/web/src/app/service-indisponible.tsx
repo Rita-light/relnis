@@ -1,7 +1,7 @@
 import { CloudOff, RotateCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { cleErreur } from '@/lib/erreurs'
+import { Button } from '@/shared/ui/button'
+import { cleErreur } from '@/shared/lib/erreurs'
 
 /** La session n'a pas pu être vérifiée : on le dit, au lieu de faire croire à une déconnexion. */
 export function ServiceIndisponible({ erreur, reessayer }: { erreur: unknown; reessayer: () => void }) {

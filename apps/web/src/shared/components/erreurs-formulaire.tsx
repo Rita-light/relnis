@@ -1,11 +1,14 @@
 import { CircleAlert } from 'lucide-react'
 import type { FieldError as ErreurRhf } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { FieldError } from '@/components/ui/field'
-import { cleErreur } from '@/lib/erreurs'
+import { FieldError } from '@/shared/ui/field'
+import { cleCode, cleErreur } from '@/shared/lib/erreurs'
 
-/** Message sous un champ, selon la règle non respectée (obligatoire, format, longueur). */
-export function ErreurChamp({ erreur, min }: { erreur?: ErreurRhf; min?: number }) {
+/**
+ * Message sous un champ, selon la règle non respectée (obligatoire, format, longueur).
+ * Un type en MAJUSCULES est un code de l'API (ex. COURRIEL_DEJA_UTILISE).
+ */
+export function ErreurChamp({ erreur, min, message }: { erreur?: ErreurRhf; min?: number; message?: string }) {
   const { t } = useTranslation()
   if (!erreur) return null
 
@@ -15,7 +18,9 @@ export function ErreurChamp({ erreur, min }: { erreur?: ErreurRhf; min?: number 
     minLength: t('validation.tropCourt', { min }),
     maxLength: t('validation.tropLong'),
   }
-  return <FieldError>{messages[erreur.type] ?? t('validation.invalide')}</FieldError>
+  const texte =
+    message ?? messages[erreur.type] ?? (/^[A-Z_]+$/.test(erreur.type) ? t(cleCode(erreur.type)) : t('validation.invalide'))
+  return <FieldError>{texte}</FieldError>
 }
 
 /** Erreur renvoyée par l'API, au-dessus du formulaire (annoncée par les lecteurs d'écran). */
