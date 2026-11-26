@@ -80,7 +80,7 @@ export function VerifierCourriel() {
         </Button>
       )}
       <Link to="/connexion" className="text-center text-sm text-lien underline underline-offset-4">
-        {t('courrielEnvoye.retourConnexion')}
+        {t('commun.retourConnexion')}
       </Link>
     </div>
   )

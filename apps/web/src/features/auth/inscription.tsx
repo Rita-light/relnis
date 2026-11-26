@@ -3,15 +3,15 @@ import { LoaderCircle } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
-import { ErreurChamp, ErreurFormulaire } from '@/shared/components/erreurs-formulaire'
-import { InputMotDePasse } from '@/features/auth/input-mot-de-passe'
+import { ErreurChamp, ErreurFormulaire } from '@/shared/components/messages-formulaire'
+import { InputMotDePasse } from './input-mot-de-passe'
 import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { appelerApi } from '@/shared/lib/api'
 import { aLeCode } from '@/shared/lib/erreurs'
-import { MOT_DE_PASSE_MAX, MOT_DE_PASSE_MIN, reglesCourriel, reglesTexte } from '@/features/auth/validation'
+import { MOT_DE_PASSE_MAX, MOT_DE_PASSE_MIN, reglesCourriel, reglesTexte } from './validation'
 
 interface Valeurs {
   nomEntreprise: string
@@ -124,7 +124,7 @@ export function Inscription() {
               })}
             />
             <FieldDescription id="aide-mot-de-passe">
-              {t('inscription.aideMotDePasse', { min: MOT_DE_PASSE_MIN })}
+              {t('champs.aideMotDePasse', { min: MOT_DE_PASSE_MIN })}
             </FieldDescription>
             <ErreurChamp erreur={errors.motDePasse} min={MOT_DE_PASSE_MIN} />
           </Field>

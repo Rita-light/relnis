@@ -1,17 +1,14 @@
 import { useState } from 'react'
-import { CircleCheck, LoaderCircle, MailCheck } from 'lucide-react'
+import { LoaderCircle, MailCheck } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router'
-import { ErreurChamp, ErreurFormulaire } from '@/shared/components/erreurs-formulaire'
+import { ErreurChamp, ErreurFormulaire, SuccesFormulaire } from '@/shared/components/messages-formulaire'
 import { Button } from '@/shared/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 import { appelerApi } from '@/shared/lib/api'
-import { reglesCourriel } from '@/features/auth/validation'
-
-// L'API ignore un renvoi dans la minute qui suit le précédent : le bouton attend autant.
-const ATTENTE_RENVOI_MS = 60_000
+import { ATTENTE_RENVOI_MS, reglesCourriel } from './validation'
 
 /** Après l'inscription (ou une connexion refusée) : ouvrir le lien reçu, ou en demander un autre. */
 export function CourrielEnvoye() {
@@ -63,12 +60,7 @@ export function CourrielEnvoye() {
       <form noValidate onSubmit={(e) => void renvoyer(e)}>
         <FieldGroup>
           <ErreurFormulaire erreur={erreurApi} />
-          {envoye && (
-            <p role="status" className="flex items-start gap-2 rounded-lg bg-succes px-3 py-2 text-sm text-succes-foreground">
-              <CircleCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-              {t('courrielEnvoye.renvoye')}
-            </p>
-          )}
+          {envoye && <SuccesFormulaire>{t('courrielEnvoye.renvoye')}</SuccesFormulaire>}
 
           {/* Courriel inconnu (page rechargée, lien direct) : on le demande */}
           {!courrielConnu && (
@@ -93,7 +85,7 @@ export function CourrielEnvoye() {
       </form>
 
       <Link to="/connexion" className="text-center text-sm text-lien underline underline-offset-4">
-        {t('courrielEnvoye.retourConnexion')}
+        {t('commun.retourConnexion')}
       </Link>
     </div>
   )

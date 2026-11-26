@@ -1,4 +1,5 @@
-import { CircleAlert } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { CircleAlert, CircleCheck } from 'lucide-react'
 import type { FieldError as ErreurRhf } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { FieldError } from '@/shared/ui/field'
@@ -32,6 +33,16 @@ export function ErreurFormulaire({ erreur }: { erreur: unknown }) {
     <p role="alert" className="flex items-start gap-2 rounded-lg bg-erreur px-3 py-2 text-sm text-erreur-foreground">
       <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
       {t(cleErreur(erreur))}
+    </p>
+  )
+}
+
+/** Confirmation après un envoi réussi (lue poliment par les lecteurs d'écran). */
+export function SuccesFormulaire({ children }: { children: ReactNode }) {
+  return (
+    <p role="status" className="flex items-start gap-2 rounded-lg bg-succes px-3 py-2 text-sm text-succes-foreground">
+      <CircleCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+      {children}
     </p>
   )
 }

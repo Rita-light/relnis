@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LogOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ErreurFormulaire } from '@/shared/components/erreurs-formulaire'
+import { ErreurFormulaire } from '@/shared/components/messages-formulaire'
 import { SelecteurLangue } from '@/shared/components/selecteur-langue'
 import { Button } from '@/shared/ui/button'
 import { useSession } from '@/app/session/contexte-session'

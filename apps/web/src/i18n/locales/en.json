@@ -2,7 +2,8 @@
   "commun": {
     "langue": "Language",
     "chargement": "Loading…",
-    "nouvelOnglet": "(opens in a new tab)"
+    "nouvelOnglet": "(opens in a new tab)",
+    "retourConnexion": "Back to sign in"
   },
   "champs": {
     "courriel": "Email",
@@ -10,7 +11,8 @@
     "nomEntreprise": "Company name",
     "prenom": "First name",
     "nom": "Last name",
-    "afficherMotDePasse": "Show password"
+    "afficherMotDePasse": "Show password",
+    "aideMotDePasse": "At least {{min}} characters. A short sentence that is easy to remember works well."
   },
   "validation": {
     "requis": "This field is required.",
@@ -62,7 +64,6 @@
   "inscription": {
     "titre": "Create your company",
     "sousTitre": "Your account will have full administrator rights.",
-    "aideMotDePasse": "At least {{min}} characters. A short sentence that is easy to remember works well.",
     "accepte": "I accept the <conditions>terms of use</conditions> and the <confidentialite>privacy policy</confidentialite>.",
     "creer": "Create my account",
     "dejaCompte": "Already have an account?",
@@ -74,8 +75,7 @@
     "envoye": "Open the confirmation link we sent you. It is valid for 24 hours.",
     "rienRecu": "Nothing received? Check your spam folder, or request a new link.",
     "renvoyer": "Resend the link",
-    "renvoye": "If this account is awaiting confirmation, a new link has just been sent.",
-    "retourConnexion": "Back to sign in"
+    "renvoye": "If this account is awaiting confirmation, a new link has just been sent."
   },
   "verifierCourriel": {
     "titreEnCours": "Email confirmation",
@@ -85,6 +85,23 @@
     "seConnecter": "Sign in",
     "titreEchec": "Unable to confirm",
     "nouveauLien": "Get a new link"
+  },
+  "motDePasseOublie": {
+    "titre": "Forgot password",
+    "explication": "Enter your email: we will send you a link to choose a new password.",
+    "envoyer": "Send the link",
+    "envoye": "If an account exists for this address, a link has just been sent. It is valid for {{minutes}} minutes."
+  },
+  "nouveauMotDePasse": {
+    "titre": "New password",
+    "explication": "Choose a password you do not use anywhere else.",
+    "champ": "New password",
+    "enregistrer": "Save the password",
+    "titreReussi": "Password changed",
+    "reussi": "For your security, all your sessions have been closed. Sign in with your new password.",
+    "seConnecter": "Sign in",
+    "titreLienInvalide": "Invalid link",
+    "nouveauLien": "Request a new link"
   },
   "accueil": {
     "titre": "Home",

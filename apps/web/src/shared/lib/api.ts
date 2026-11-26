@@ -66,5 +66,7 @@ export async function appelerApi<T>(chemin: string, options: OptionsAppel = {}):
   }
 
   if (!reponse.ok) throw await erreurDepuis(reponse)
-  return (reponse.status === 204 ? undefined : await reponse.json()) as T
+  // Certaines réponses n'ont pas de corps (202, 204) : json() planterait sur un texte vide.
+  const texte = await reponse.text()
+  return (texte ? JSON.parse(texte) : undefined) as T
 }

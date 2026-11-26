@@ -14,7 +14,8 @@ export default defineConfig({
   },
   server: {
     // /api passe à l'API : une seule origine pour le navigateur (cookies, CSRF), comme Vercel en production.
-    // Pas de changeOrigin : la protection CSRF de l'API compare l'origine à l'hôte d'origine.
-    proxy: { '/api': 'http://localhost:3000' },
+    // changeOrigin: false écrit en toutes lettres : la forme courte ('/api': 'http://…') l'active.
+    // L'hôte reçu par l'API reste celui du navigateur, comme l'origine vérifiée par la protection CSRF.
+    proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: false } },
   },
 })

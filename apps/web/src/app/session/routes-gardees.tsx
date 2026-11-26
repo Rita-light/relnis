@@ -5,12 +5,12 @@ import { useSession } from './contexte-session'
 
 /** Pages réservées aux personnes connectées ; sinon, direction la connexion. */
 export function RoutePrivee() {
-  const { etat, reessayer } = useSession()
+  const { etat, actualiser } = useSession()
   const { pathname } = useLocation()
 
   if (etat.statut === 'chargement') return <Chargement />
   if (etat.statut === 'indisponible') {
-    return <ServiceIndisponible erreur={etat.erreur} reessayer={reessayer} />
+    return <ServiceIndisponible erreur={etat.erreur} reessayer={actualiser} />
   }
   if (etat.statut === 'anonyme') {
     return <Navigate to="/connexion" replace state={{ depuis: pathname }} />
@@ -20,12 +20,12 @@ export function RoutePrivee() {
 
 /** Pages pour les visiteurs (connexion, inscription…) ; une personne connectée repart où elle allait. */
 export function RouteVisiteur() {
-  const { etat, reessayer } = useSession()
+  const { etat, actualiser } = useSession()
   const { state } = useLocation()
 
   if (etat.statut === 'chargement') return <Chargement />
   if (etat.statut === 'indisponible') {
-    return <ServiceIndisponible erreur={etat.erreur} reessayer={reessayer} />
+    return <ServiceIndisponible erreur={etat.erreur} reessayer={actualiser} />
   }
   if (etat.statut === 'connecte') {
     const depuis = (state as { depuis?: string } | null)?.depuis

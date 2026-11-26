@@ -17,3 +17,7 @@ export const reglesCourriel = {
   pattern: FORMAT_COURRIEL,
   setValueAs: (valeur: string) => valeur.trim(),
 }
+
+// L'API ignore un nouvel envoi de courriel dans la minute qui suit : le bouton attend autant.
+export const ATTENTE_RENVOI_MS = 60_000
+export const DUREE_LIEN_REINITIALISATION_MINUTES = 60

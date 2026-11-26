@@ -25,7 +25,7 @@ export interface Session {
   etat: EtatSession
   connecter: (courriel: string, motDePasse: string) => Promise<void>
   deconnecter: () => Promise<void>
-  reessayer: () => void
+  actualiser: () => void // relit la session auprès de l'API
 }
 
 export const ContexteSession = createContext<Session | null>(null)

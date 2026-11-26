@@ -23,7 +23,7 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
     void etatDepuisApi().then(setEtat)
   }, [])
 
-  const reessayer = useCallback(() => {
+  const actualiser = useCallback(() => {
     setEtat({ statut: 'chargement' })
     void etatDepuisApi().then(setEtat)
   }, [])
@@ -45,8 +45,8 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
   }, [])
 
   const session = useMemo(
-    () => ({ etat, connecter, deconnecter, reessayer }),
-    [etat, connecter, deconnecter, reessayer],
+    () => ({ etat, connecter, deconnecter, actualiser }),
+    [etat, connecter, deconnecter, actualiser],
   )
   return <ContexteSession value={session}>{children}</ContexteSession>
 }

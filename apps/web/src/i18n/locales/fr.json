@@ -2,7 +2,8 @@
   "commun": {
     "langue": "Langue",
     "chargement": "Chargement…",
-    "nouvelOnglet": "(s'ouvre dans un nouvel onglet)"
+    "nouvelOnglet": "(s'ouvre dans un nouvel onglet)",
+    "retourConnexion": "Retour à la connexion"
   },
   "champs": {
     "courriel": "Courriel",
@@ -10,7 +11,8 @@
     "nomEntreprise": "Nom de l'entreprise",
     "prenom": "Prénom",
     "nom": "Nom",
-    "afficherMotDePasse": "Afficher le mot de passe"
+    "afficherMotDePasse": "Afficher le mot de passe",
+    "aideMotDePasse": "Au moins {{min}} caractères. Une courte phrase facile à retenir fonctionne bien."
   },
   "validation": {
     "requis": "Ce champ est obligatoire.",
@@ -62,7 +64,6 @@
   "inscription": {
     "titre": "Créer votre entreprise",
     "sousTitre": "Votre compte aura tous les droits d'administration.",
-    "aideMotDePasse": "Au moins {{min}} caractères. Une courte phrase facile à retenir fonctionne bien.",
     "accepte": "J'accepte les <conditions>conditions d'utilisation</conditions> et la <confidentialite>politique de confidentialité</confidentialite>.",
     "creer": "Créer mon compte",
     "dejaCompte": "Déjà un compte ?",
@@ -74,8 +75,7 @@
     "envoye": "Ouvrez le lien de confirmation que nous vous avons envoyé. Il est valide 24 heures.",
     "rienRecu": "Rien reçu ? Regardez dans les courriels indésirables, ou demandez un nouveau lien.",
     "renvoyer": "Renvoyer le lien",
-    "renvoye": "Si ce compte attend une confirmation, un nouveau lien vient d'être envoyé.",
-    "retourConnexion": "Retour à la connexion"
+    "renvoye": "Si ce compte attend une confirmation, un nouveau lien vient d'être envoyé."
   },
   "verifierCourriel": {
     "titreEnCours": "Confirmation du courriel",
@@ -85,6 +85,23 @@
     "seConnecter": "Se connecter",
     "titreEchec": "Confirmation impossible",
     "nouveauLien": "Recevoir un nouveau lien"
+  },
+  "motDePasseOublie": {
+    "titre": "Mot de passe oublié",
+    "explication": "Entrez votre courriel : nous vous enverrons un lien pour choisir un nouveau mot de passe.",
+    "envoyer": "Envoyer le lien",
+    "envoye": "Si un compte existe pour cette adresse, un lien vient d'être envoyé. Il est valide {{minutes}} minutes."
+  },
+  "nouveauMotDePasse": {
+    "titre": "Nouveau mot de passe",
+    "explication": "Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.",
+    "champ": "Nouveau mot de passe",
+    "enregistrer": "Enregistrer le mot de passe",
+    "titreReussi": "Mot de passe modifié",
+    "reussi": "Par sécurité, toutes vos sessions ont été fermées. Connectez-vous avec votre nouveau mot de passe.",
+    "seConnecter": "Se connecter",
+    "titreLienInvalide": "Lien non valide",
+    "nouveauLien": "Demander un nouveau lien"
   },
   "accueil": {
     "titre": "Accueil",
