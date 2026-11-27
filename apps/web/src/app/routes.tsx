@@ -1,4 +1,4 @@
-import { createBrowserRouter, Outlet, ScrollRestoration } from 'react-router'
+import { Outlet, ScrollRestoration, type RouteObject } from 'react-router'
 import { Accueil } from '@/features/accueil/accueil'
 import { Connexion } from '@/features/auth/connexion'
 import { CourrielEnvoye } from '@/features/auth/courriel-envoye'
@@ -11,8 +11,8 @@ import { PageLegale } from '@/features/legal/page-legale'
 import { PageIntrouvable } from './page-introuvable'
 import { RoutePrivee, RouteVisiteur } from './session/routes-gardees'
 
-// Chaque page est rangée sous la garde qui la protège.
-export const routeur = createBrowserRouter([
+// Chaque page est rangée sous la garde qui la protège (main.tsx et les tests montent ces routes).
+export const routes: RouteObject[] = [
   {
     // Racine : une nouvelle page s'ouvre en haut ; le retour arrière retrouve la position d'avant.
     element: (
@@ -54,4 +54,4 @@ export const routeur = createBrowserRouter([
       { path: '*', element: <PageIntrouvable /> },
     ],
   },
-])
+]

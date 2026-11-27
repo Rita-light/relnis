@@ -9,16 +9,19 @@ Installation : voir le [README principal](../../README.md). Commandes à lancer 
 | Commande | Rôle |
 | --- | --- |
 | `npm run dev -w @relnis/web` | Interface sur <http://localhost:5173> (`/api` est relayé vers l'API sur le port 3000 : lancer l'API aussi) |
+| `npm run test -w @relnis/web` | Tests (Vitest + Testing Library, navigateur simulé) ; `test:watch` pour les relancer à chaque modification |
+| `npm run format -w @relnis/web` | Met le code au format Prettier |
 | `npm run build -w @relnis/web` | Vérifie les types et construit le site |
 
 ## Organisation (`src/`)
 
 | Dossier | Contenu |
 | --- | --- |
-| `app/` | Démarrage, routeur, session, écrans globaux (chargement, page introuvable…) |
+| `app/` | Démarrage, routes, session, écrans globaux (chargement, page introuvable…) |
 | `features/<fonctionnalité>/` | Pages et composants d'une seule fonctionnalité (`auth`, `accueil`…) |
 | `shared/` | Ce que plusieurs fonctionnalités utilisent : `ui/` (shadcn, généré), `components/`, `lib/` |
 | `i18n/` | Configuration des langues et textes (`locales/`) |
+| `test/` | Préparation des tests et outils partagés (fausse API, montage de l'application) |
 
 Un fichier vit dans sa fonctionnalité ; il monte dans `shared/` seulement quand une deuxième fonctionnalité en a besoin. Une fonctionnalité n'importe pas l'intérieur d'une autre. Dossiers à plat tant qu'ils restent petits. Tests à côté du fichier testé (`*.spec.tsx`).
 
