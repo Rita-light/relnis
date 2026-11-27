@@ -33,6 +33,7 @@ L'API refuse de démarrer si un rôle n'est pas celui attendu, est superutilisat
 ## Règles
 
 - Toutes les routes exigent d'être connecté (cookie `relnis_acces`), sauf celles marquées `@Publique()`.
+- Données d'une entreprise : toujours lues et écrites dans `prisma.avecEntreprise(utilisateur.entrepriseId, (tx) => …)`. Nouvelle table : colonne `entreprise_id`, RLS activé et forcé, politique filtrant par `entreprise_courante()` (`USING` et `WITH CHECK`), `GRANT SELECT, INSERT, UPDATE` à `relnis_app` (jamais `DELETE`). Sinon le test de garde (`test/isolation.e2e-spec.ts`) échoue.
 - Erreurs au format `{ code, message, details }` : `throw new ErreurApi(statut, 'CODE', 'message')`.
 - Données reçues validées par un DTO ; un champ non prévu est refusé.
 - Courriels : modèles dans `src/courriels/modeles` (layout commun) ; en local, Mailpit les affiche sur <http://localhost:8025>.
