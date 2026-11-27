@@ -2,14 +2,12 @@ import { BellRing, CircleCheck, MapPin, TriangleAlert } from 'lucide-react'
 import { cn } from 'cn'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet } from 'react-router'
+import { PiedDePage } from '@/shared/components/pied-de-page'
 import { SelecteurLangue } from '@/shared/components/selecteur-langue'
 
 // Effet vitre ; opaque si le système demande moins de transparence.
 const VITRE =
   'relative rounded-2xl border border-white/15 bg-white/10 shadow-xl backdrop-blur-xl transparence-reduite:bg-sidebar-accent transparence-reduite:backdrop-blur-none'
-
-// Calculée une fois au chargement : un composant React ne doit pas lire l'heure pendant l'affichage.
-const ANNEE = new Date().getFullYear()
 
 /** Taches de couleur floues, derrière la vitre (décor). */
 function Taches({ className }: { className?: string }) {
@@ -74,24 +72,6 @@ function ApercuStock() {
   )
 }
 
-/** Liens légaux, en bas de la colonne du formulaire. */
-function PiedDePage() {
-  const { t } = useTranslation()
-  const lien = 'text-lien underline-offset-4 hover:underline'
-
-  return (
-    <footer className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-6 pb-6 text-xs text-muted-foreground lg:px-10 lg:pb-8">
-      <span>{t('piedDePage.droits', { annee: ANNEE })}</span>
-      <Link to="/conditions" className={lien}>
-        {t('piedDePage.conditions')}
-      </Link>
-      <Link to="/confidentialite" className={lien}>
-        {t('piedDePage.confidentialite')}
-      </Link>
-    </footer>
-  )
-}
-
 /**
  * Écrans d'authentification. Téléphone : grand bandeau Nuit, carte à cheval dessus, pied de page.
  * Grand écran : formulaire à gauche, panneau Nuit à droite.
@@ -129,7 +109,7 @@ export function MiseEnPageAuth() {
           </div>
         </main>
 
-        <PiedDePage />
+        <PiedDePage className="lg:px-10 lg:pb-8" />
       </div>
 
       <aside className="relative hidden overflow-hidden bg-sidebar p-10 text-sidebar-foreground lg:flex lg:flex-col lg:items-center lg:justify-center lg:gap-8">

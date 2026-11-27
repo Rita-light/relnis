@@ -148,6 +148,10 @@
     "titreLienInvalide": "Invalid link",
     "nouveauLien": "Request a new link"
   },
+  "legal": {
+    "preliminaire": "Preliminary version: this text describes the application as it is today. It will be completed and validated before going live.",
+    "miseAJour": "Last updated: {{date}}"
+  },
   "accueil": {
     "titre": "Home",
     "bonjour": "Hello {{prenom}}",

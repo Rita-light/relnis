@@ -25,7 +25,8 @@ Un fichier vit dans sa fonctionnalité ; il monte dans `shared/` seulement quand
 ## Règles
 
 - **Textes** : jamais en dur ; une clé dans `src/i18n/locales/fr.json` et `en.json`, affichée avec `t('ecran.cle')`.
-- **Langues** : en ajouter une = une ligne dans `src/i18n/langues.ts` + un fichier `src/i18n/locales/xx.json`.
+- **Documents légaux** : trop longs pour `fr.json`, ils sont dans `src/features/legal/documents.fr.ts` et `.en.ts` (même forme imposée par le type).
+- **Langues** : en ajouter une = une ligne dans `src/i18n/langues.ts` + un fichier `src/i18n/locales/xx.json` (+ ses documents légaux).
 - **Couleurs** (`src/index.css`) : `variant="action"` (orange) une seule fois par écran ; `text-lien` pour les liens ; `bg-ia` pour l'IA ; `bg-succes`, `bg-alerte`, `bg-erreur`, `bg-info` toujours avec une icône.
 - **Accessibilité** : clavier, étiquettes sur les champs, `alt` sur les images.
 - **Imports** : `@/` = `src/`.

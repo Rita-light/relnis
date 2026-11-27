@@ -148,6 +148,10 @@
     "titreLienInvalide": "Lien non valide",
     "nouveauLien": "Demander un nouveau lien"
   },
+  "legal": {
+    "preliminaire": "Version préliminaire : ce texte décrit l'application telle qu'elle est aujourd'hui. Il sera complété et validé avant la mise en production.",
+    "miseAJour": "Dernière mise à jour : {{date}}"
+  },
   "accueil": {
     "titre": "Accueil",
     "bonjour": "Bonjour {{prenom}}",
