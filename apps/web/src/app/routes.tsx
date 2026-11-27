@@ -1,15 +1,17 @@
 import { Outlet, ScrollRestoration, type RouteObject } from 'react-router'
-import { Accueil } from '@/features/accueil/accueil'
-import { Connexion } from '@/features/auth/connexion'
-import { CourrielEnvoye } from '@/features/auth/courriel-envoye'
-import { Inscription } from '@/features/auth/inscription'
-import { MiseEnPageAuth } from '@/features/auth/mise-en-page-auth'
-import { MotDePasseOublie } from '@/features/auth/mot-de-passe-oublie'
-import { NouveauMotDePasse } from '@/features/auth/nouveau-mot-de-passe'
-import { VerifierCourriel } from '@/features/auth/verifier-courriel'
-import { PageLegale } from '@/features/legal/page-legale'
+import type { NomDocument } from '@/features/legal/documents'
+import { Chargement } from './chargement'
+import { ErreurApplication } from './erreur-application'
 import { PageIntrouvable } from './page-introuvable'
 import { RoutePrivee, RouteVisiteur } from './session/routes-gardees'
+
+// Chaque page est un fichier à part, téléchargé à sa première ouverture (et non au démarrage).
+// lazy en forme fonction : la forme objet est vidée après usage et ne servirait qu'au premier routeur.
+const miseEnPageAuth = async () => ({ Component: (await import('@/features/auth/mise-en-page-auth')).MiseEnPageAuth })
+const pageLegale = (document: NomDocument) => async () => {
+  const { PageLegale } = await import('@/features/legal/page-legale')
+  return { element: <PageLegale document={document} /> }
+}
 
 // Chaque page est rangée sous la garde qui la protège (main.tsx et les tests montent ces routes).
 export const routes: RouteObject[] = [
@@ -21,35 +23,61 @@ export const routes: RouteObject[] = [
         <ScrollRestoration />
       </>
     ),
+    hydrateFallbackElement: <Chargement />, // pendant le téléchargement de la première page
+    errorElement: <ErreurApplication />, // page qui plante ou fichier introuvable
     children: [
       {
         element: <RouteVisiteur />,
         children: [
           {
-            element: <MiseEnPageAuth />,
+            lazy: miseEnPageAuth,
             children: [
-              { path: '/connexion', element: <Connexion /> },
-              { path: '/inscription', element: <Inscription /> },
-              { path: '/courriel-envoye', element: <CourrielEnvoye /> },
-              { path: '/mot-de-passe-oublie', element: <MotDePasseOublie /> },
+              {
+                path: '/connexion',
+                lazy: async () => ({ Component: (await import('@/features/auth/connexion')).Connexion }),
+              },
+              {
+                path: '/inscription',
+                lazy: async () => ({ Component: (await import('@/features/auth/inscription')).Inscription }),
+              },
+              {
+                path: '/courriel-envoye',
+                lazy: async () => ({ Component: (await import('@/features/auth/courriel-envoye')).CourrielEnvoye }),
+              },
+              {
+                path: '/mot-de-passe-oublie',
+                lazy: async () => ({
+                  Component: (await import('@/features/auth/mot-de-passe-oublie')).MotDePasseOublie,
+                }),
+              },
             ],
           },
         ],
       },
       // Liens reçus par courriel : ouverts qu'on soit connecté ou non.
       {
-        element: <MiseEnPageAuth />,
+        lazy: miseEnPageAuth,
         children: [
-          { path: '/verifier-courriel', element: <VerifierCourriel /> },
-          { path: '/nouveau-mot-de-passe', element: <NouveauMotDePasse /> },
+          {
+            path: '/verifier-courriel',
+            lazy: async () => ({ Component: (await import('@/features/auth/verifier-courriel')).VerifierCourriel }),
+          },
+          {
+            path: '/nouveau-mot-de-passe',
+            lazy: async () => ({
+              Component: (await import('@/features/auth/nouveau-mot-de-passe')).NouveauMotDePasse,
+            }),
+          },
         ],
       },
       // Pages légales : publiques (on doit pouvoir les lire avant de créer un compte).
-      { path: '/conditions', element: <PageLegale document="conditions" /> },
-      { path: '/confidentialite', element: <PageLegale document="confidentialite" /> },
+      { path: '/conditions', lazy: pageLegale('conditions') },
+      { path: '/confidentialite', lazy: pageLegale('confidentialite') },
       {
         element: <RoutePrivee />,
-        children: [{ path: '/', element: <Accueil /> }],
+        children: [
+          { path: '/', lazy: async () => ({ Component: (await import('@/features/accueil/accueil')).Accueil }) },
+        ],
       },
       { path: '*', element: <PageIntrouvable /> },
     ],

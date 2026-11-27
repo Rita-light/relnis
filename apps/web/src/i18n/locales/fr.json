@@ -171,5 +171,10 @@
   "indisponible": {
     "titre": "Service indisponible",
     "reessayer": "Réessayer"
+  },
+  "erreurApplication": {
+    "titre": "Une erreur est survenue",
+    "texte": "Cette page n'a pas pu s'afficher. Rechargez-la ; si le problème continue, réessayez un peu plus tard.",
+    "recharger": "Recharger la page"
   }
 }

@@ -171,5 +171,10 @@
   "indisponible": {
     "titre": "Service unavailable",
     "reessayer": "Try again"
+  },
+  "erreurApplication": {
+    "titre": "Something went wrong",
+    "texte": "This page could not be displayed. Reload it; if the problem persists, try again a little later.",
+    "recharger": "Reload the page"
   }
 }

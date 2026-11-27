@@ -27,6 +27,7 @@ Un fichier vit dans sa fonctionnalité ; il monte dans `shared/` seulement quand
 
 ## Règles
 
+- **Pages** : chacune est téléchargée à sa première ouverture (`lazy` dans `src/app/routes.tsx`, en forme fonction) ; une nouvelle page s'ajoute de la même façon.
 - **Textes** : jamais en dur ; une clé dans `src/i18n/locales/fr.json` et `en.json`, affichée avec `t('ecran.cle')`.
 - **Documents légaux** : trop longs pour `fr.json`, ils sont dans `src/features/legal/documents.fr.ts` et `.en.ts` (même forme imposée par le type).
 - **Langues** : en ajouter une = une ligne dans `src/i18n/langues.ts` + un fichier `src/i18n/locales/xx.json` (+ ses documents légaux).

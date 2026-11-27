@@ -36,8 +36,9 @@ describe('lien de confirmation du courriel', () => {
     })
     const { utilisateur } = afficherApp('/verifier-courriel?jeton=abc')
 
+    const reessayer = await screen.findByRole('button', { name: 'Réessayer' }) // 1er envoi refusé (503)
     disponible = true
-    await utilisateur.click(await screen.findByRole('button', { name: 'Réessayer' }))
+    await utilisateur.click(reessayer)
 
     expect(await screen.findByRole('heading', { name: 'Courriel confirmé' })).toBeInTheDocument()
     expect(api.nombre(VERIFIER)).toBe(2)

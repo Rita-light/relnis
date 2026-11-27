@@ -2,11 +2,22 @@
 import { StrictMode } from 'react'
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createMemoryRouter } from 'react-router'
+import { createMemoryRouter, type RouteObject } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { routes } from '@/app/routes'
 import type { Utilisateur } from '@/app/session/contexte-session'
 import { FournisseurSession } from '@/app/session/fournisseur-session'
+
+// Pages chargées d'avance : sinon le 1er test de chaque fichier attend leur compilation (plus d'une seconde).
+// Un échec est ignoré ici : le test qui ouvre cette page le verra par le routeur.
+const precharger = (liste: RouteObject[]): Promise<unknown> =>
+  Promise.all(
+    liste.map(async (route) => {
+      if (typeof route.lazy === 'function') await route.lazy().catch(() => {})
+      await precharger(route.children ?? [])
+    }),
+  )
+await precharger(routes)
 
 /** Une réponse de l'API, avec un corps JSON (ou sans corps). */
 export const repondre = (statut: number, corps?: unknown) =>
