@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma, TypeJeton } from '../generated/prisma/client.js';
 import { ErreurApi } from '../commun/erreur-api.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaSystemeService } from '../prisma/prisma.service.js';
 import { hacherJeton } from './hacher-jeton.js';
 
 const jetonInvalide = () =>
@@ -15,18 +15,18 @@ const jetonInvalide = () =>
 /** Jetons à usage unique envoyés par courriel (vérification du courriel, mot de passe oublié). */
 @Injectable()
 export class JetonsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly systeme: PrismaSystemeService) {}
 
   /** Crée un jeton (valeur en clair pour le lien) ; les précédents du même type ne marchent plus. */
   async creer(utilisateurId: string, type: TypeJeton, dureeMs: number) {
     const jeton = randomBytes(32).toString('base64url');
     const maintenant = Date.now();
-    await this.prisma.$transaction([
-      this.prisma.jeton.updateMany({
+    await this.systeme.$transaction([
+      this.systeme.jeton.updateMany({
         where: { utilisateurId, type, utiliseLe: null },
         data: { expireLe: new Date(maintenant) },
       }),
-      this.prisma.jeton.create({
+      this.systeme.jeton.create({
         data: {
           utilisateurId,
           type,
@@ -40,7 +40,7 @@ export class JetonsService {
 
   /** Vérifie un jeton sans le consommer : type, pas encore utilisé, pas expiré. */
   async verifier(jeton: string, type: TypeJeton) {
-    const trouve = await this.prisma.jeton.findUnique({
+    const trouve = await this.systeme.jeton.findUnique({
       where: { jetonHache: hacherJeton(jeton) },
     });
 
@@ -66,7 +66,7 @@ export class JetonsService {
   ): Promise<T> {
     const trouve = await this.verifier(jeton, type);
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.systeme.$transaction(async (tx) => {
       // Condition « pas encore utilisé » : deux clics simultanés ne servent qu'une fois.
       const { count } = await tx.jeton.updateMany({
         where: { id: trouve.id, utiliseLe: null },

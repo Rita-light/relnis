@@ -46,7 +46,10 @@ jobs:
           --health-retries 10
 
     env:
-      DATABASE_URL: postgresql://relnis:relnis_ci@localhost:5432/relnis?schema=public
+      # Un rôle par usage, comme en local (apps/api/.env.example) ; mots de passe du CI seulement.
+      DATABASE_URL: postgresql://relnis_app:relnis_app_dev@localhost:5432/relnis?schema=public
+      DATABASE_URL_SYSTEME: postgresql://relnis_systeme:relnis_systeme_dev@localhost:5432/relnis?schema=public
+      DATABASE_URL_MIGRATION: postgresql://relnis:relnis_ci@localhost:5432/relnis?schema=public
       # Exigés au démarrage de l'API ; les tests gardent les courriels en mémoire (aucun envoi).
       SMTP_URL: smtp://localhost:1025
       COURRIEL_EXPEDITEUR: Relnis <ne-pas-repondre@relnis.local>
@@ -72,6 +75,12 @@ jobs:
 
       - name: Appliquer les migrations
         run: npm run db:deploy -w @relnis/api
+
+      # Les migrations créent les rôles de l'API sans mot de passe : on ouvre leur connexion.
+      - name: Ouvrir la connexion des rôles de l'API
+        run: psql -h localhost -U relnis -d relnis -v ON_ERROR_STOP=1 -f apps/api/prisma/roles-dev.sql
+        env:
+          PGPASSWORD: relnis_ci
 
       - name: Vérifier le code (lint)
         run: npm run lint

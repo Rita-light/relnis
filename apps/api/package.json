@@ -20,6 +20,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
+    "db:roles-dev": "docker compose exec -T postgres psql -U relnis -d relnis -v ON_ERROR_STOP=1 < prisma/roles-dev.sql",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",

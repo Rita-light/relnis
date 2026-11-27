@@ -53,7 +53,8 @@ Prérequis : Node.js 24, Docker.
 npm install
 cp apps/api/.env.example apps/api/.env
 docker compose up -d                 # PostgreSQL, Redis et Mailpit (courriels : http://localhost:8025)
-npm run db:deploy -w @relnis/api     # crée les tables
+npm run db:deploy -w @relnis/api     # crée les tables et les rôles de l'API
+npm run db:roles-dev -w @relnis/api  # ouvre la connexion de ces rôles (mots de passe locaux)
 npm run db:generate -w @relnis/api
 npm run start:dev -w @relnis/api     # API : http://localhost:3000/api/docs
 npm run dev -w @relnis/web           # interface : http://localhost:5173

@@ -10,7 +10,10 @@ import {
 } from '../generated/prisma/client.js';
 import { ErreurApi } from '../commun/erreur-api.js';
 import { CourrielsService } from '../courriels/courriels.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  PrismaService,
+  PrismaSystemeService,
+} from '../prisma/prisma.service.js';
 import { executerLot } from '../redis/executer-lot.js';
 import { RedisService } from '../redis/redis.service.js';
 import { ConnexionDto } from './dto/connexion.dto.js';
@@ -28,6 +31,7 @@ import {
   DUREE_ABSOLUE_MS,
   DUREE_ACCES_SECONDES,
   DUREE_INACTIVITE_MS,
+  type UtilisateurConnecte,
 } from './session.js';
 
 const identifiantsInvalides = () =>
@@ -79,6 +83,8 @@ export class AuthService {
   );
 
   constructor(
+    // Système : la connexion, l'inscription et les liens agissent avant de connaître l'entreprise.
+    private readonly systeme: PrismaSystemeService,
     private readonly prisma: PrismaService,
     private readonly courriels: CourrielsService,
     private readonly jwt: JwtService,
@@ -106,7 +112,7 @@ export class AuthService {
       );
     }
 
-    const utilisateur = await this.prisma.utilisateur.findUnique({
+    const utilisateur = await this.systeme.utilisateur.findUnique({
       where: { courriel: dto.courriel },
     });
 
@@ -133,7 +139,7 @@ export class AuthService {
 
     const jetonRenouvellement = randomBytes(32).toString('base64url');
     const maintenant = Date.now();
-    const session = await this.prisma.$transaction(async (tx) => {
+    const session = await this.systeme.$transaction(async (tx) => {
       // Verrouille l'utilisateur ; échoue si le mot de passe a changé (ou le compte désactivé) entre-temps.
       const { count } = await tx.utilisateur.updateMany({
         where: {
@@ -176,7 +182,7 @@ export class AuthService {
     const hache = hacherJeton(jeton);
     const maintenant = Date.now();
 
-    const session = await this.prisma.session.findFirst({
+    const session = await this.systeme.session.findFirst({
       where: {
         OR: [
           { jetonRenouvellementHache: hache },
@@ -195,7 +201,7 @@ export class AuthService {
       if (depuisRotation > DELAI_GRACE_RENOUVELLEMENT_MS) {
         // Vol probable : on coupe tout le monde, la vraie personne se reconnectera.
         await this.revoquerSessions([session.id]);
-        await this.prisma.session.update({
+        await this.systeme.session.update({
           where: { id: session.id },
           data: {
             fermeeLe: new Date(maintenant),
@@ -226,7 +232,7 @@ export class AuthService {
 
     const nouveauJeton = randomBytes(32).toString('base64url');
     // Condition sur le jeton actuel : une seule rotation si deux requêtes arrivent ensemble.
-    const { count } = await this.prisma.session.updateMany({
+    const { count } = await this.systeme.session.updateMany({
       where: { id: session.id, jetonRenouvellementHache: hache },
       data: {
         jetonRenouvellementHache: hacherJeton(nouveauJeton),
@@ -259,7 +265,7 @@ export class AuthService {
   async deconnecter(jeton: string | undefined) {
     if (!jeton) return;
     const hache = hacherJeton(jeton);
-    const session = await this.prisma.session.findFirst({
+    const session = await this.systeme.session.findFirst({
       where: {
         OR: [
           { jetonRenouvellementHache: hache },
@@ -271,7 +277,7 @@ export class AuthService {
     if (!session) return;
 
     await this.revoquerSessions([session.id]);
-    await this.prisma.session.update({
+    await this.systeme.session.update({
       where: { id: session.id },
       data: {
         fermeeLe: new Date(),
@@ -334,20 +340,23 @@ export class AuthService {
   }
 
   /** Profil de la personne connectée, relu en base. */
-  async moi(utilisateurId: string) {
-    return this.prisma.utilisateur.findUniqueOrThrow({
-      where: { id: utilisateurId },
-      select: {
-        id: true,
-        prenom: true,
-        nom: true,
-        courriel: true,
-        role: true,
-        langue: true,
-        theme: true,
-        entreprise: { select: { id: true, nom: true } },
-      },
-    });
+  // Lu avec relnis_app, dans l'entreprise du jeton : le RLS s'applique comme pour toute donnée d'entreprise.
+  async moi({ id, entrepriseId }: UtilisateurConnecte) {
+    return this.prisma.avecEntreprise(entrepriseId, (tx) =>
+      tx.utilisateur.findUniqueOrThrow({
+        where: { id },
+        select: {
+          id: true,
+          prenom: true,
+          nom: true,
+          courriel: true,
+          role: true,
+          langue: true,
+          theme: true,
+          entreprise: { select: { id: true, nom: true } },
+        },
+      }),
+    );
   }
 
   /** Crée l'entreprise et son administrateur, ensemble ou pas du tout. */
@@ -360,7 +369,7 @@ export class AuthService {
 
     let utilisateur;
     try {
-      utilisateur = await this.prisma.$transaction(async (tx) => {
+      utilisateur = await this.systeme.$transaction(async (tx) => {
         const entreprise = await tx.entreprise.create({
           data: { nom: dto.nomEntreprise },
         });
@@ -418,7 +427,7 @@ export class AuthService {
     if (!(await this.premierEnvoiDeLaMinute('verification', courriel))) return;
 
     this.enArrierePlan('renvoi du lien de vérification', async () => {
-      const utilisateur = await this.prisma.utilisateur.findUnique({
+      const utilisateur = await this.systeme.utilisateur.findUnique({
         where: { courriel },
       });
       if (utilisateur?.actif && !utilisateur.courrielVerifie) {
@@ -432,7 +441,7 @@ export class AuthService {
     if (!(await this.premierEnvoiDeLaMinute('mot-de-passe', courriel))) return;
 
     this.enArrierePlan('lien de réinitialisation', async () => {
-      const utilisateur = await this.prisma.utilisateur.findUnique({
+      const utilisateur = await this.systeme.utilisateur.findUnique({
         where: { courriel },
       });
       if (utilisateur?.actif) {
@@ -460,7 +469,7 @@ export class AuthService {
     );
 
     // Solidité jugée avec les infos de la personne ; un refus laisse le lien utilisable.
-    const personne = await this.prisma.utilisateur.findUniqueOrThrow({
+    const personne = await this.systeme.utilisateur.findUniqueOrThrow({
       where: { id: utilisateurId },
       select: {
         courriel: true,

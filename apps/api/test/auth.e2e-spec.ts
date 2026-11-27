@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InMemoryMailTransport, MailTransport } from '@nestjs/mail';
 import { Test } from '@nestjs/testing';
+import { PrismaPg } from '@prisma/adapter-pg';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
@@ -12,7 +14,8 @@ import {
   MAX_ECHECS_TOTAL,
 } from '../src/auth/auth.service.js';
 import { configurerApp } from '../src/configurer-app.js';
-import { PrismaService } from '../src/prisma/prisma.service.js';
+import { PrismaClient } from '../src/generated/prisma/client.js';
+import { PrismaSystemeService } from '../src/prisma/prisma.service.js';
 import { RedisService } from '../src/redis/redis.service.js';
 
 // Désactive la limite par adresse IP (seulement quand NODE_ENV=test), sauf dans les tests de limites.
@@ -21,7 +24,10 @@ const SANS_LIMITE = { 'x-test-sans-limite': '1' };
 // Tests de bout en bout : vraie API + vraie base. Les courriels restent en mémoire (aucun envoi).
 describe('Authentification (e2e)', () => {
   let app: INestApplication<App>;
-  let prisma: PrismaService;
+  // Propriétaire des tables : prépare et nettoie les données de test (l'API n'a pas ces droits).
+  let prisma: PrismaClient;
+  // Le client qu'utilise l'authentification (pour l'espionner).
+  let systeme: PrismaSystemeService;
   let redis: RedisService;
   const boiteCourriels = new InMemoryMailTransport();
   const courrielsCrees: string[] = [];
@@ -127,7 +133,14 @@ describe('Authentification (e2e)', () => {
     app = module.createNestApplication();
     configurerApp(app);
     await app.init();
-    prisma = app.get(PrismaService);
+    systeme = app.get(PrismaSystemeService);
+    prisma = new PrismaClient({
+      adapter: new PrismaPg({
+        connectionString: app
+          .get(ConfigService)
+          .getOrThrow<string>('DATABASE_URL_MIGRATION'),
+      }),
+    });
 
     // Repart de compteurs vides. Sécurité : seulement sur la base Redis n° 15 des tests.
     expect(process.env.REDIS_URL).toMatch(/\/15$/);
@@ -147,6 +160,7 @@ describe('Authentification (e2e)', () => {
     await prisma.entreprise.deleteMany({
       where: { id: { in: utilisateurs.map((u) => u.entrepriseId) } },
     });
+    await prisma.$disconnect();
     await app.close();
   });
 
@@ -556,10 +570,10 @@ describe('Authentification (e2e)', () => {
 
     it('une connexion en cours ne survit pas à une réinitialisation simultanée', async () => {
       const { courriel, motDePasse } = await compteVerifie();
-      const lire = prisma.utilisateur.findUnique.bind(prisma.utilisateur);
+      const lire = systeme.utilisateur.findUnique.bind(systeme.utilisateur);
       // Juste après la lecture par la connexion, une réinitialisation change le mot de passe.
       const espion = vi
-        .spyOn(prisma.utilisateur, 'findUnique')
+        .spyOn(systeme.utilisateur, 'findUnique')
         .mockImplementationOnce((async (args: Parameters<typeof lire>[0]) => {
           const lu = await lire(args);
           await prisma.utilisateur.update({

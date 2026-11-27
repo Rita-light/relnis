@@ -20,6 +20,16 @@ Installation : voir le [README principal](../../README.md). Commandes à lancer 
 - `/api/v1/sante` : état de l'API et de la base.
 - `/api/docs` : Swagger, désactivé en production.
 
+## Base de données : un rôle par usage
+
+| Variable | Rôle PostgreSQL | Pour |
+| --- | --- | --- |
+| `DATABASE_URL` | `relnis_app` | Toute l'API (`PrismaService`) ; soumis à l'isolation entre entreprises ; aucun `DELETE` |
+| `DATABASE_URL_SYSTEME` | `relnis_systeme` | L'authentification seulement (`PrismaSystemeService`, fourni par `AuthModule`) |
+| `DATABASE_URL_MIGRATION` | `relnis` (propriétaire) | Les migrations et les tests (préparation, nettoyage) |
+
+L'API refuse de démarrer si un rôle n'est pas celui attendu, est superutilisateur, propriétaire des tables (ou membre de ce rôle) ou mal réglé pour le RLS. Les rôles et leurs droits sont créés par les migrations, sans mot de passe ; `db:roles-dev` ouvre leur connexion en local. Hors local, le compte de migration doit pouvoir créer des rôles (`CREATEROLE`).
+
 ## Règles
 
 - Toutes les routes exigent d'être connecté (cookie `relnis_acces`), sauf celles marquées `@Publique()`.
