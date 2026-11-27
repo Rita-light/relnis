@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { CourrielsModule } from '../courriels/courriels.module.js';
+import { PrismaSystemeService } from '../prisma/prisma.service.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { GardeConnexion } from './garde-connexion.js';
@@ -26,6 +27,8 @@ import { DUREE_ACCES_SECONDES } from './session.js';
   providers: [
     AuthService,
     JetonsService,
+    // Fourni ici seulement : aucun autre module ne peut contourner l'isolation entre entreprises.
+    PrismaSystemeService,
     // Garde appliqué à TOUTES les routes de l'API ; @Publique() l'enlève.
     { provide: APP_GUARD, useClass: GardeConnexion },
   ],

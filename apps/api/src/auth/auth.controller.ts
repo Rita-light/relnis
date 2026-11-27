@@ -203,6 +203,6 @@ export class AuthController {
   @ApiOkResponse({ description: 'La personne connectée et son entreprise' })
   @ApiUnauthorizedResponse({ description: 'NON_AUTHENTIFIE' })
   moi(@UtilisateurCourant() utilisateur: UtilisateurConnecte) {
-    return this.auth.moi(utilisateur.id);
+    return this.auth.moi(utilisateur);
   }
 }

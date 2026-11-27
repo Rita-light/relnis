@@ -8,7 +8,8 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // Les migrations passent par le propriétaire des tables, seul à pouvoir les créer ; l'API, elle, utilise DATABASE_URL.
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DATABASE_URL_MIGRATION"],
   },
 });
