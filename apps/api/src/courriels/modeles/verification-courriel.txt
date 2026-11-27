@@ -1,0 +1,7 @@
+Bonjour {{ prenom }},
+
+Bienvenue sur Relnis ! Pour activer votre compte, confirmez votre adresse courriel en ouvrant ce lien :
+
+{{ lien }}
+
+Ce lien est valable {{ dureeHeures }} heures. Si vous n'avez pas créé de compte Relnis, ignorez simplement ce message.

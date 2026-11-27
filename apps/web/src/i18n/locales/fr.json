@@ -1,0 +1,180 @@
+{
+  "commun": {
+    "langue": "Langue",
+    "chargement": "Chargement…",
+    "nouvelOnglet": "(s'ouvre dans un nouvel onglet)",
+    "retourConnexion": "Retour à la connexion"
+  },
+  "champs": {
+    "courriel": "Courriel",
+    "motDePasse": "Mot de passe",
+    "nomEntreprise": "Nom de l'entreprise",
+    "prenom": "Prénom",
+    "nom": "Nom",
+    "afficherMotDePasse": "Afficher le mot de passe",
+    "aideMotDePasse": "Au moins {{min}} caractères, difficile à deviner. Une courte phrase facile à retenir fonctionne bien."
+  },
+  "validation": {
+    "requis": "Ce champ est obligatoire.",
+    "courrielInvalide": "Entrez une adresse courriel valide (ex. nom@entreprise.ca).",
+    "tropCourt": "Au moins {{min}} caractères.",
+    "tropLong": "Ce texte est trop long.",
+    "invalide": "Cette valeur n'est pas valide.",
+    "accepter": "Vous devez accepter pour créer votre compte."
+  },
+  "solidite": {
+    "libelle": "Solidité : {{niveau}}",
+    "tresFaible": "très faible",
+    "faible": "faible",
+    "moyen": "moyenne",
+    "solide": "bonne",
+    "tresSolide": "excellente",
+    "tropCourt": "Trop court : au moins {{min}} caractères.",
+    "conseil": "Ajoutez un ou deux mots inattendus.",
+    "avertissements": {
+      "straightRow": "Les rangées de touches du clavier sont faciles à deviner.",
+      "keyPattern": "Les motifs de clavier courts sont faciles à deviner.",
+      "simpleRepeat": "Les caractères répétés comme « aaa » sont faciles à deviner.",
+      "extendedRepeat": "Les motifs répétés comme « abcabcabc » sont faciles à deviner.",
+      "sequences": "Les suites comme « abc » ou « 1234 » sont faciles à deviner.",
+      "recentYears": "Les années récentes sont faciles à deviner.",
+      "dates": "Les dates sont faciles à deviner.",
+      "topTen": "Ce mot de passe fait partie des plus utilisés au monde.",
+      "topHundred": "Ce mot de passe est très souvent utilisé.",
+      "common": "Ce mot de passe est couramment utilisé.",
+      "similarToCommon": "Ce mot de passe ressemble à un mot de passe courant.",
+      "wordByItself": "Un mot seul est facile à deviner.",
+      "namesByThemselves": "Un nom ou un prénom seul est facile à deviner.",
+      "commonNames": "Les noms et prénoms courants sont faciles à deviner.",
+      "userInputs": "Évitez votre nom, votre courriel, votre entreprise ou le nom du site.",
+      "pwned": "Ce mot de passe a déjà fuité lors d'un piratage."
+    },
+    "suggestions": {
+      "l33t": "Évitez les remplacements prévisibles comme « @ » pour « a ».",
+      "reverseWords": "Évitez les mots courants écrits à l'envers.",
+      "allUppercase": "Mettez quelques lettres en majuscule, pas toutes.",
+      "capitalization": "Une majuscule ailleurs qu'au début aide un peu.",
+      "dates": "Évitez les dates et les années liées à vous.",
+      "recentYears": "Évitez les années récentes.",
+      "associatedYears": "Évitez les années liées à vous (naissance, etc.).",
+      "sequences": "Évitez les suites de caractères.",
+      "repeated": "Évitez les mots et les caractères répétés.",
+      "longerKeyboardPattern": "Utilisez des motifs de clavier plus longs, en changeant de direction.",
+      "anotherWord": "Ajoutez un ou deux mots inattendus.",
+      "useWords": "Utilisez plusieurs mots, mais pas une expression connue.",
+      "noNeed": "Pas besoin de symboles ni de chiffres : quelques mots inattendus suffisent.",
+      "pwned": "Si vous l'utilisez ailleurs, changez-le."
+    }
+  },
+  "erreurs": {
+    "IDENTIFIANTS_INVALIDES": "Courriel ou mot de passe incorrect.",
+    "COURRIEL_NON_VERIFIE": "Confirmez d'abord votre courriel : ouvrez le lien que nous vous avons envoyé.",
+    "COMPTE_BLOQUE_TEMPORAIREMENT": "Trop d'essais. Réessayez dans 15 minutes.",
+    "TROP_DE_DEMANDES": "Trop de demandes. Patientez un moment, puis réessayez.",
+    "COURRIEL_DEJA_UTILISE": "Ce courriel est déjà utilisé par un compte.",
+    "MOT_DE_PASSE_TROP_FAIBLE": "Ce mot de passe est trop facile à deviner. Essayez une courte phrase avec des mots inattendus.",
+    "JETON_INVALIDE": "Ce lien n'est pas valide ou a déjà servi.",
+    "JETON_EXPIRE": "Ce lien a expiré. Demandez-en un nouveau.",
+    "SESSION_INVALIDE": "Votre session a pris fin. Reconnectez-vous.",
+    "DONNEES_INVALIDES": "Certaines informations ne sont pas valides. Vérifiez le formulaire.",
+    "SERVICE_INDISPONIBLE": "Le service est momentanément indisponible. Réessayez dans un instant.",
+    "ERREUR_RESEAU": "Impossible de joindre le serveur. Vérifiez votre connexion Internet.",
+    "ERREUR_INTERNE": "Une erreur inattendue est survenue. Réessayez."
+  },
+  "authentification": {
+    "panneau": {
+      "titre": "Votre stock, clair et à jour, pour toute l'équipe.",
+      "sousTitre": "Articles, emplacements et alertes, au même endroit.",
+      "emplacements": "Suivez vos articles dans chaque emplacement",
+      "alertes": "Soyez averti avant la rupture de stock"
+    },
+    "apercu": {
+      "titre": "Entrepôt principal",
+      "tuyau": "Tuyau PEX ½ po",
+      "raccord": "Raccord en laiton ¾ po",
+      "ruban": "Ruban de téflon",
+      "enStock": "En stock",
+      "stockBas": "Stock bas"
+    }
+  },
+  "connexion": {
+    "titre": "Connexion",
+    "sousTitre": "Heureux de vous revoir.",
+    "oublie": "Mot de passe oublié ?",
+    "seConnecter": "Se connecter",
+    "pasDeCompte": "Pas encore de compte ?",
+    "creerEntreprise": "Créer votre entreprise",
+    "nouveauLien": "Recevoir un nouveau lien de confirmation"
+  },
+  "inscription": {
+    "titre": "Créer votre entreprise",
+    "sousTitre": "Votre compte aura tous les droits d'administration.",
+    "accepte": "J'accepte les <conditions>conditions d'utilisation</conditions> et la <confidentialite>politique de confidentialité</confidentialite>.",
+    "creer": "Créer mon compte",
+    "dejaCompte": "Déjà un compte ?",
+    "seConnecter": "Se connecter"
+  },
+  "courrielEnvoye": {
+    "titre": "Vérifiez votre courriel",
+    "envoyeA": "Nous avons envoyé un lien de confirmation à <strong>{{courriel}}</strong>. Il est valide 24 heures.",
+    "envoye": "Ouvrez le lien de confirmation que nous vous avons envoyé. Il est valide 24 heures.",
+    "rienRecu": "Rien reçu ? Regardez dans les courriels indésirables, ou demandez un nouveau lien.",
+    "renvoyer": "Renvoyer le lien",
+    "renvoye": "Si ce compte attend une confirmation, un nouveau lien vient d'être envoyé."
+  },
+  "verifierCourriel": {
+    "titreEnCours": "Confirmation du courriel",
+    "enCours": "Confirmation de votre courriel…",
+    "titreReussi": "Courriel confirmé",
+    "reussi": "Votre compte est prêt. Vous pouvez maintenant vous connecter.",
+    "seConnecter": "Se connecter",
+    "titreEchec": "Confirmation impossible",
+    "nouveauLien": "Recevoir un nouveau lien"
+  },
+  "motDePasseOublie": {
+    "titre": "Mot de passe oublié",
+    "explication": "Entrez votre courriel : nous vous enverrons un lien pour choisir un nouveau mot de passe.",
+    "envoyer": "Envoyer le lien",
+    "envoye": "Si un compte existe pour cette adresse, un lien vient d'être envoyé. Il est valide {{minutes}} minutes."
+  },
+  "nouveauMotDePasse": {
+    "titre": "Nouveau mot de passe",
+    "explication": "Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.",
+    "champ": "Nouveau mot de passe",
+    "enregistrer": "Enregistrer le mot de passe",
+    "titreReussi": "Mot de passe modifié",
+    "reussi": "Par sécurité, toutes vos sessions ont été fermées. Connectez-vous avec votre nouveau mot de passe.",
+    "seConnecter": "Se connecter",
+    "titreLienInvalide": "Lien non valide",
+    "nouveauLien": "Demander un nouveau lien"
+  },
+  "legal": {
+    "preliminaire": "Version préliminaire : ce texte décrit l'application telle qu'elle est aujourd'hui. Il sera complété et validé avant la mise en production.",
+    "miseAJour": "Dernière mise à jour : {{date}}"
+  },
+  "accueil": {
+    "titre": "Accueil",
+    "bonjour": "Bonjour {{prenom}}",
+    "bientot": "Le tableau de bord arrive bientôt.",
+    "seDeconnecter": "Se déconnecter"
+  },
+  "introuvable": {
+    "titre": "Page introuvable",
+    "texte": "Cette adresse ne mène à aucune page.",
+    "retour": "Retour à l'accueil"
+  },
+  "piedDePage": {
+    "droits": "© {{annee}} Relnis",
+    "conditions": "Conditions d'utilisation",
+    "confidentialite": "Confidentialité"
+  },
+  "indisponible": {
+    "titre": "Service indisponible",
+    "reessayer": "Réessayer"
+  },
+  "erreurApplication": {
+    "titre": "Une erreur est survenue",
+    "texte": "Cette page n'a pas pu s'afficher. Rechargez-la ; si le problème continue, réessayez un peu plus tard.",
+    "recharger": "Recharger la page"
+  }
+}

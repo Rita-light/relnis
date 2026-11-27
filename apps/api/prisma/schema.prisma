@@ -63,7 +63,67 @@ model Utilisateur {
   modifieLe             DateTime  @updatedAt @map("modifie_le") @db.Timestamptz(3)
 
   entreprise Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Restrict)
+  jetons     Jeton[]
+  sessions   Session[]
 
   @@index([entrepriseId])
   @@map("utilisateurs")
+}
+
+enum TypeJeton {
+  VERIFICATION_COURRIEL
+  MOT_DE_PASSE
+
+  @@map("type_jeton")
+}
+
+/// Jeton à usage unique envoyé par courriel. Seul son haché (SHA-256) est enregistré.
+model Jeton {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  utilisateurId String    @map("utilisateur_id") @db.Uuid
+  type          TypeJeton
+  jetonHache    String    @unique @map("jeton_hache") @db.Char(64)
+  expireLe      DateTime  @map("expire_le") @db.Timestamptz(3)
+  utiliseLe     DateTime? @map("utilise_le") @db.Timestamptz(3)
+  creeLe        DateTime  @default(now()) @map("cree_le") @db.Timestamptz(3)
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Restrict)
+
+  @@index([utilisateurId])
+  @@map("jetons")
+}
+
+enum MotifFermeture {
+  DECONNEXION
+  /// Un ancien jeton de renouvellement a resservi : probablement volé.
+  REUTILISATION_DETECTEE
+  /// Mot de passe réinitialisé : toutes les sessions sont fermées.
+  MOT_DE_PASSE_CHANGE
+
+  @@map("motif_fermeture")
+}
+
+/// Une connexion ouverte sur un appareil. Seul le haché du jeton de renouvellement est enregistré.
+model Session {
+  id                       String          @id @default(uuid(7)) @db.Uuid
+  utilisateurId            String          @map("utilisateur_id") @db.Uuid
+  jetonRenouvellementHache String          @unique @map("jeton_renouvellement_hache") @db.Char(64)
+  /// Le jeton remplacé au dernier renouvellement : s'il resservait, la session serait fermée.
+  jetonPrecedentHache      String?         @unique @map("jeton_precedent_hache") @db.Char(64)
+  renouveleeLe             DateTime?       @map("renouvelee_le") @db.Timestamptz(3)
+  appareil                 String?         @db.VarChar(255)
+  adresseIp                String?         @map("adresse_ip") @db.VarChar(45)
+  derniereActiviteLe       DateTime        @default(now()) @map("derniere_activite_le") @db.Timestamptz(3)
+  /// Inactivité : repoussée à chaque renouvellement.
+  expireLe                 DateTime        @map("expire_le") @db.Timestamptz(3)
+  /// Limite absolue : jamais repoussée.
+  expireAbsoluLe           DateTime        @map("expire_absolu_le") @db.Timestamptz(3)
+  fermeeLe                 DateTime?       @map("fermee_le") @db.Timestamptz(3)
+  motifFermeture           MotifFermeture? @map("motif_fermeture")
+  creeLe                   DateTime        @default(now()) @map("cree_le") @db.Timestamptz(3)
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Restrict)
+
+  @@index([utilisateurId])
+  @@map("sessions")
 }

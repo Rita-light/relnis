@@ -1,0 +1,40 @@
+{{! Mise en page commune à tous les courriels. Tableaux et styles en ligne : c'est ce que les messageries (Gmail, Outlook) affichent le mieux. }}
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Relnis</title>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #f3f6fa">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f3f6fa">
+      <tr>
+        <td align="center" style="padding: 32px 16px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px">
+            <!-- En-tête Nuit avec le logo -->
+            <tr>
+              <td style="background-color: #15364d; border-radius: 12px 12px 0 0; padding: 20px 32px">
+                <img src="cid:logo" width="32" height="32" alt="" style="vertical-align: middle; border: 0; border-radius: 6px" />
+                <span style="vertical-align: middle; margin-left: 10px; font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: bold; color: #f3f6fa">Relnis</span>
+              </td>
+            </tr>
+            <!-- Contenu du courriel -->
+            <tr>
+              <td style="background-color: #ffffff; border-radius: 0 0 12px 12px; padding: 32px; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.5; color: #15364d">
+                {{{ body }}}
+              </td>
+            </tr>
+            <!-- Pied de page : expéditeur identifié, aucune publicité (loi anti-pourriel) -->
+            <tr>
+              <td style="padding: 24px 32px; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.5; color: #52677a; text-align: center">
+                Relnis — la gestion de stock simple et traçable.<br />
+                Message de service, sans publicité.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -20,7 +20,7 @@ jobs:
     name: Lint, types, tests et build
     runs-on: ubuntu-latest
 
-    # Base PostgreSQL jetable pour les tests de bout en bout.
+    # PostgreSQL et Redis jetables pour les tests de bout en bout.
     services:
       postgres:
         image: postgres:18-alpine
@@ -35,9 +35,23 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
 
     env:
       DATABASE_URL: postgresql://relnis:relnis_ci@localhost:5432/relnis?schema=public
+      # Exigés au démarrage de l'API ; les tests gardent les courriels en mémoire (aucun envoi).
+      SMTP_URL: smtp://localhost:1025
+      COURRIEL_EXPEDITEUR: Relnis <ne-pas-repondre@relnis.local>
+      URL_WEB: http://localhost:5173
+      JWT_SECRET: cle-du-ci-sans-valeur-hors-des-tests
 
     steps:
       - name: Récupérer le code
@@ -61,6 +75,10 @@ jobs:
 
       - name: Vérifier le code (lint)
         run: npm run lint
+
+      # Échoue si un fichier n'est pas au format Prettier (corriger avec npm run format -w …).
+      - name: Vérifier le formatage
+        run: npm run format:check
 
       - name: Vérifier les types
         run: npm run typecheck

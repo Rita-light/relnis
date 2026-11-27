@@ -1,0 +1,180 @@
+{
+  "commun": {
+    "langue": "Language",
+    "chargement": "Loading…",
+    "nouvelOnglet": "(opens in a new tab)",
+    "retourConnexion": "Back to sign in"
+  },
+  "champs": {
+    "courriel": "Email",
+    "motDePasse": "Password",
+    "nomEntreprise": "Company name",
+    "prenom": "First name",
+    "nom": "Last name",
+    "afficherMotDePasse": "Show password",
+    "aideMotDePasse": "At least {{min}} characters, hard to guess. A short sentence that is easy to remember works well."
+  },
+  "validation": {
+    "requis": "This field is required.",
+    "courrielInvalide": "Enter a valid email address (e.g. name@company.ca).",
+    "tropCourt": "At least {{min}} characters.",
+    "tropLong": "This text is too long.",
+    "invalide": "This value is not valid.",
+    "accepter": "You must accept to create your account."
+  },
+  "solidite": {
+    "libelle": "Strength: {{niveau}}",
+    "tresFaible": "very weak",
+    "faible": "weak",
+    "moyen": "fair",
+    "solide": "good",
+    "tresSolide": "excellent",
+    "tropCourt": "Too short: at least {{min}} characters.",
+    "conseil": "Add one or two unexpected words.",
+    "avertissements": {
+      "straightRow": "Straight rows of keys are easy to guess.",
+      "keyPattern": "Short keyboard patterns are easy to guess.",
+      "simpleRepeat": "Repeated characters like “aaa” are easy to guess.",
+      "extendedRepeat": "Repeated patterns like “abcabcabc” are easy to guess.",
+      "sequences": "Sequences like “abc” or “1234” are easy to guess.",
+      "recentYears": "Recent years are easy to guess.",
+      "dates": "Dates are easy to guess.",
+      "topTen": "This is one of the most used passwords in the world.",
+      "topHundred": "This password is used very often.",
+      "common": "This is a commonly used password.",
+      "similarToCommon": "This looks like a commonly used password.",
+      "wordByItself": "A single word is easy to guess.",
+      "namesByThemselves": "A single name or surname is easy to guess.",
+      "commonNames": "Common names and surnames are easy to guess.",
+      "userInputs": "Avoid your name, your email, your company or the site name.",
+      "pwned": "This password has already leaked in a data breach."
+    },
+    "suggestions": {
+      "l33t": "Avoid predictable substitutions like “@” for “a”.",
+      "reverseWords": "Avoid common words spelled backwards.",
+      "allUppercase": "Capitalize some letters, not all of them.",
+      "capitalization": "A capital letter somewhere other than the start helps a little.",
+      "dates": "Avoid dates and years associated with you.",
+      "recentYears": "Avoid recent years.",
+      "associatedYears": "Avoid years associated with you (birth, etc.).",
+      "sequences": "Avoid character sequences.",
+      "repeated": "Avoid repeated words and characters.",
+      "longerKeyboardPattern": "Use longer keyboard patterns and change direction.",
+      "anotherWord": "Add one or two unexpected words.",
+      "useWords": "Use several words, but not a well-known phrase.",
+      "noNeed": "No need for symbols or numbers: a few unexpected words are enough.",
+      "pwned": "If you use it elsewhere, change it."
+    }
+  },
+  "erreurs": {
+    "IDENTIFIANTS_INVALIDES": "Incorrect email or password.",
+    "COURRIEL_NON_VERIFIE": "Please confirm your email first: open the link we sent you.",
+    "COMPTE_BLOQUE_TEMPORAIREMENT": "Too many attempts. Try again in 15 minutes.",
+    "TROP_DE_DEMANDES": "Too many requests. Wait a moment, then try again.",
+    "COURRIEL_DEJA_UTILISE": "This email is already used by an account.",
+    "MOT_DE_PASSE_TROP_FAIBLE": "This password is too easy to guess. Try a short sentence with unexpected words.",
+    "JETON_INVALIDE": "This link is not valid or has already been used.",
+    "JETON_EXPIRE": "This link has expired. Request a new one.",
+    "SESSION_INVALIDE": "Your session has ended. Please sign in again.",
+    "DONNEES_INVALIDES": "Some information is not valid. Please check the form.",
+    "SERVICE_INDISPONIBLE": "The service is temporarily unavailable. Try again in a moment.",
+    "ERREUR_RESEAU": "Unable to reach the server. Check your Internet connection.",
+    "ERREUR_INTERNE": "An unexpected error occurred. Please try again."
+  },
+  "authentification": {
+    "panneau": {
+      "titre": "Your inventory, clear and up to date, for the whole team.",
+      "sousTitre": "Items, locations and alerts, all in one place.",
+      "emplacements": "Track your items in every location",
+      "alertes": "Get notified before you run out of stock"
+    },
+    "apercu": {
+      "titre": "Main warehouse",
+      "tuyau": "PEX pipe ½ in",
+      "raccord": "Brass fitting ¾ in",
+      "ruban": "Teflon tape",
+      "enStock": "In stock",
+      "stockBas": "Low stock"
+    }
+  },
+  "connexion": {
+    "titre": "Sign in",
+    "sousTitre": "Welcome back.",
+    "oublie": "Forgot your password?",
+    "seConnecter": "Sign in",
+    "pasDeCompte": "Don't have an account yet?",
+    "creerEntreprise": "Create your company",
+    "nouveauLien": "Get a new confirmation link"
+  },
+  "inscription": {
+    "titre": "Create your company",
+    "sousTitre": "Your account will have full administrator rights.",
+    "accepte": "I accept the <conditions>terms of use</conditions> and the <confidentialite>privacy policy</confidentialite>.",
+    "creer": "Create my account",
+    "dejaCompte": "Already have an account?",
+    "seConnecter": "Sign in"
+  },
+  "courrielEnvoye": {
+    "titre": "Check your email",
+    "envoyeA": "We sent a confirmation link to <strong>{{courriel}}</strong>. It is valid for 24 hours.",
+    "envoye": "Open the confirmation link we sent you. It is valid for 24 hours.",
+    "rienRecu": "Nothing received? Check your spam folder, or request a new link.",
+    "renvoyer": "Resend the link",
+    "renvoye": "If this account is awaiting confirmation, a new link has just been sent."
+  },
+  "verifierCourriel": {
+    "titreEnCours": "Email confirmation",
+    "enCours": "Confirming your email…",
+    "titreReussi": "Email confirmed",
+    "reussi": "Your account is ready. You can now sign in.",
+    "seConnecter": "Sign in",
+    "titreEchec": "Unable to confirm",
+    "nouveauLien": "Get a new link"
+  },
+  "motDePasseOublie": {
+    "titre": "Forgot password",
+    "explication": "Enter your email: we will send you a link to choose a new password.",
+    "envoyer": "Send the link",
+    "envoye": "If an account exists for this address, a link has just been sent. It is valid for {{minutes}} minutes."
+  },
+  "nouveauMotDePasse": {
+    "titre": "New password",
+    "explication": "Choose a password you do not use anywhere else.",
+    "champ": "New password",
+    "enregistrer": "Save the password",
+    "titreReussi": "Password changed",
+    "reussi": "For your security, all your sessions have been closed. Sign in with your new password.",
+    "seConnecter": "Sign in",
+    "titreLienInvalide": "Invalid link",
+    "nouveauLien": "Request a new link"
+  },
+  "legal": {
+    "preliminaire": "Preliminary version: this text describes the application as it is today. It will be completed and validated before going live.",
+    "miseAJour": "Last updated: {{date}}"
+  },
+  "accueil": {
+    "titre": "Home",
+    "bonjour": "Hello {{prenom}}",
+    "bientot": "The dashboard is coming soon.",
+    "seDeconnecter": "Sign out"
+  },
+  "introuvable": {
+    "titre": "Page not found",
+    "texte": "This address does not lead to any page.",
+    "retour": "Back to home"
+  },
+  "piedDePage": {
+    "droits": "© {{annee}} Relnis",
+    "conditions": "Terms of use",
+    "confidentialite": "Privacy"
+  },
+  "indisponible": {
+    "titre": "Service unavailable",
+    "reessayer": "Try again"
+  },
+  "erreurApplication": {
+    "titre": "Something went wrong",
+    "texte": "This page could not be displayed. Reload it; if the problem persists, try again a little later.",
+    "recharger": "Reload the page"
+  }
+}
